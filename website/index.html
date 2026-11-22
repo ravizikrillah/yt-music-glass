@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YT Music Glass — Native YouTube Music Client for macOS (Free DMG)</title>
-  <meta name="description" content="Download YT Music Glass (.dmg) — a fast, 2.9 MB native Swift YouTube Music desktop app for macOS with zero Electron, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and Offline Lyrics Vault.">
+  <title>YT Music Glass: Native YouTube Music Client for macOS (Free DMG)</title>
+  <meta name="description" content="Download YT Music Glass (.dmg), a fast 2.9 MB native Swift YouTube Music desktop app for macOS with zero Electron, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and Offline Lyrics Vault.">
   <meta name="keywords" content="YouTube Music macOS, YouTube Music Mac DMG, YouTube Music desktop client MacBook, native Swift YouTube Music, YouTube Music lyrics macOS, Romaji karaoke lyrics Mac, Apple Silicon YouTube Music">
   <meta name="author" content="Ravi Bangkit Nur Zikrillah">
   <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#030303">
+  <meta name="theme-color" content="#050507">
   <link rel="canonical" href="https://yt-music-glass.vercel.app/">
 
   <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -17,7 +17,7 @@
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://yt-music-glass.vercel.app/">
-  <meta property="og:title" content="YT Music Glass — Native YouTube Music Client for macOS">
+  <meta property="og:title" content="YT Music Glass: Native YouTube Music Client for macOS">
   <meta property="og:description" content="A 2.9 MB pure Swift YouTube Music client for MacBook. Obsidian Liquid Glass UI, Spotify-style player bar, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, and Offline Vault.">
   <meta property="og:image" content="https://yt-music-glass.vercel.app/assets/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -26,7 +26,7 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="YT Music Glass — Native YouTube Music Client for macOS">
+  <meta name="twitter:title" content="YT Music Glass: Native YouTube Music Client for macOS">
   <meta name="twitter:description" content="Download the 2.9 MB native Swift DMG for macOS. Zero Electron, synced lyrics, Auto-Romaji, Smart Translate, Mini Player & Offline Vault.">
   <meta name="twitter:image" content="https://yt-music-glass.vercel.app/assets/og-image.png">
 
@@ -105,40 +105,58 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
   <header class="site-header">
     <div class="shell header-inner">
-      <a class="brand" href="/">
-        <img src="/assets/favicon.png" alt="" width="28" height="28">
+      <a class="brand" href="#top">
+        <img src="/assets/favicon.png" alt="YT Music Glass icon" width="28" height="28">
         <span>YT Music Glass</span>
+        <span class="header-eq" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </span>
       </a>
 
       <nav class="site-nav" aria-label="Primary navigation">
-        <a href="#features">Features</a>
         <a href="#screenshots">Screenshots</a>
+        <a href="#features">Interactive Lab</a>
         <a href="#install">Install</a>
         <a href="#faq">FAQ</a>
         <a href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">GitHub</a>
       </nav>
 
-      <a class="nav-cta" data-download-link href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
-        Download DMG
-      </a>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="motion-toggle"
+          id="global-eq-toggle"
+          title="Pause or resume live equalizer and karaoke animations"
+        >
+          <span class="eq-mini" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="global-eq-label">Pause Motion</span>
+        </button>
+
+        <a class="nav-cta" data-download-link href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+          Download DMG
+        </a>
+      </div>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <!-- HERO -->
-    <section class="hero shell">
+    <section id="top" class="hero shell">
       <div class="hero-copy">
-        <div class="version-line">
+        <div class="version-line" id="release-status-bar" data-release-state="loading" aria-live="polite">
           <span class="pulse-dot" aria-hidden="true"></span>
-          <span id="release-meta">v1.0.0 for macOS 14+ · Apple Silicon · 2.9 MB DMG</span>
+          <span id="release-meta">Checking GitHub Releases... · v1.0.0 · macOS 14+ · 2.9 MB DMG</span>
+          <button type="button" class="retry-release-btn" id="retry-release-btn" hidden>Retry</button>
         </div>
 
         <h1>YouTube Music for Mac, built in native Swift.</h1>
 
         <p class="lead">
-          No Electron bloat, no browser tabs. YT Music Glass wraps YouTube Music in a seamless dark glass macOS app with synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and an Offline Vault.
+          No Electron bloat, no browser tabs. YT Music Glass runs YouTube Music inside a 2.9 MB native AppKit and WKWebView macOS client with 60fps synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and an Offline Vault.
         </p>
 
         <div class="hero-actions">
@@ -148,27 +166,42 @@
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span id="download-btn-label">Download for macOS (.dmg)</span>
+            <span id="download-btn-label">Download v1.0.0 (.dmg)</span>
           </a>
 
           <a class="btn-secondary" href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.95 10.95 0 0 1 5.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.79.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
             </svg>
-            <span>Source on GitHub</span>
+            <span>Inspect Swift Source</span>
           </a>
         </div>
 
-        <p class="hero-note">
-          Free &amp; open source. Built-in GitHub Releases auto-updater keeps your Mac on the latest version.
-        </p>
+        <!-- Interactive Track & Adaptive Theme Selector -->
+        <div class="live-deck-controls" aria-label="Interactive live demo track switcher">
+          <span class="deck-label mono">Try Live Adaptive Theme &amp; Equalizer:</span>
+          <div class="track-pills" role="group" aria-label="Choose demo track">
+            <button type="button" class="track-pill active" data-track-idx="0">
+              <span class="tp-swatch crimson" aria-hidden="true"></span>
+              <span>K-Pop · Romaji</span>
+            </button>
+            <button type="button" class="track-pill" data-track-idx="1">
+              <span class="tp-swatch amber" aria-hidden="true"></span>
+              <span>J-Pop · Kanji→Romaji</span>
+            </button>
+            <button type="button" class="track-pill" data-track-idx="2">
+              <span class="tp-swatch gold" aria-hidden="true"></span>
+              <span>Pop · Charlie Puth</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- HERO VISUAL STAGE -->
-      <div class="hero-stage" aria-label="YT Music Glass desktop app preview">
+      <!-- HERO INTERACTIVE LIVE STAGE -->
+      <div class="hero-stage" aria-label="Interactive YT Music Glass desktop app simulation">
         <div class="stage-glow" aria-hidden="true"></div>
 
-        <div class="app-window">
+        <div class="app-window" id="demo-app-window">
           <!-- Native macOS Unified Titlebar -->
           <div class="win-toolbar">
             <div class="traffic-lights" aria-hidden="true">
@@ -177,108 +210,135 @@
               <span class="tl green"></span>
             </div>
 
-            <span class="tb-pill mono">⌘K</span>
+            <a class="tb-pill mono" href="#screenshots" title="Jump to Command Palette screenshot">⌘K</a>
 
-            <div class="tb-segmented">
-              <span class="active">YouTube Music</span>
-              <span>YouTube</span>
+            <div class="tb-segmented" role="group" aria-label="Switch platform mode">
+              <button type="button" class="seg-btn active" data-site-mode="music">YouTube Music</button>
+              <button type="button" class="seg-btn" data-site-mode="video">YouTube</button>
             </div>
 
             <div class="tb-right">
-              <button type="button" class="tb-pill active" id="preview-lang-toggle" title="Preview Smart Translate language">
+              <button type="button" class="tb-pill active" id="preview-lang-toggle" title="Switch Smart Translate target language">
                 Translate · Auto→ID
               </button>
-              <span class="tb-pill active">Lyrics</span>
+              <button type="button" class="tb-pill active" id="preview-float-toggle" title="Toggle Floating HUD preview">
+                Float HUD
+              </button>
             </div>
           </div>
 
           <!-- Split App Body -->
           <div class="win-body">
-            <!-- Left: Seamless YouTube Music Canvas -->
+            <!-- Left: YouTube Music Stage + 32-Band Live Equalizer -->
             <div class="win-canvas">
               <div class="canvas-brand">
                 <span class="dyn-disc" aria-hidden="true"></span>
-                <span class="dyn-word">Music</span>
-                <span class="canvas-search">Search songs, albums, artists…</span>
+                <span class="dyn-word" id="demo-site-label">Music</span>
+                <span class="canvas-search" id="demo-search-box">Playing: Hearts2Hearts · The Chase</span>
               </div>
 
               <div class="hero-icon-showcase">
-                <img
-                  src="/assets/app-icon.png"
-                  alt="YT Music Glass macOS liquid glass app icon"
-                  width="156"
-                  height="156"
-                  fetchpriority="high"
-                  class="floating-app-icon"
-                >
-                <div class="showcase-caption">
-                  <strong>Obsidian Liquid Glass</strong>
-                  <span>Dynamic logo, progress track &amp; controls adapt to every album cover.</span>
+                <div class="icon-orb-wrap">
+                  <img
+                    src="/assets/app-icon.png"
+                    alt="YT Music Glass macOS liquid glass app icon"
+                    width="132"
+                    height="132"
+                    fetchpriority="high"
+                    class="floating-app-icon"
+                    id="demo-hero-icon"
+                  >
+                </div>
+
+                <!-- 32-Band Live Harmonic Spectrum Visualizer -->
+                <div class="spectrum-stage" aria-label="Live 32-band audio frequency visualizer">
+                  <div class="spectrum-bars" id="hero-spectrum-bars" aria-hidden="true"></div>
+                  <div class="spectrum-caption">
+                    <strong id="demo-track-headline">The Chase · Hearts2Hearts</strong>
+                    <span id="demo-palette-readout" class="mono">Adaptive Palette · RGB(225, 29, 72) · 60fps Sync</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Spotify-style Floating Glass Player Bar -->
+              <!-- Floating HUD Preview Overlay (Toggled by Float HUD button) -->
+              <div class="demo-floating-hud" id="demo-floating-hud" hidden>
+                <div class="dfh-top">
+                  <span class="mono">Floating HUD · Click-Through (⇧⌘L)</span>
+                  <button type="button" class="dfh-close" id="dfh-close-btn" aria-label="Dock Floating HUD">Dock</button>
+                </div>
+                <div class="dfh-lyric" id="dfh-live-lyric">ontong susukkekki nan deo algo sipeo</div>
+                <div class="dfh-trans" id="dfh-live-trans">Itu semua misteri, aku ingin tahu lebih banyak</div>
+              </div>
+
+              <!-- Spotify-style Floating Glass Player Bar (Fully Interactive) -->
               <div class="mock-player-bar">
                 <div class="mp-left">
-                  <div class="mp-art" aria-hidden="true"></div>
+                  <div class="mp-art" id="demo-art-swatch" aria-hidden="true"></div>
                   <div class="mp-meta">
-                    <span class="mp-title">The Chase</span>
-                    <span class="mp-artist">Hearts2Hearts</span>
+                    <span class="mp-title" id="demo-mp-title">The Chase</span>
+                    <span class="mp-artist" id="demo-mp-artist">Hearts2Hearts</span>
                   </div>
                 </div>
                 <div class="mp-center">
-                  <div class="mp-controls" aria-hidden="true">
-                    <span>⏮</span>
-                    <span class="mp-play">⏸</span>
-                    <span>⏭</span>
+                  <div class="mp-controls">
+                    <button type="button" class="mp-btn" id="demo-prev-btn" aria-label="Previous demo track">⏮</button>
+                    <button type="button" class="mp-play" id="demo-play-btn" aria-label="Pause demo playback">⏸</button>
+                    <button type="button" class="mp-btn" id="demo-next-btn" aria-label="Next demo track">⏭</button>
                   </div>
                   <div class="mp-progress">
-                    <span class="mono">0:58</span>
-                    <div class="mp-track"><div class="mp-fill"></div></div>
-                    <span class="mono">2:59</span>
+                    <span class="mono" id="demo-cur-time">0:58</span>
+                    <button type="button" class="mp-track" id="demo-seek-bar" aria-label="Seek demo track position">
+                      <span class="mp-fill" id="demo-seek-fill"></span>
+                    </button>
+                    <span class="mono" id="demo-dur-time">2:59</span>
                   </div>
                 </div>
                 <div class="mp-right" aria-hidden="true">
-                  <span class="mp-eq"><i></i><i></i><i></i><i></i></span>
+                  <span class="mp-eq" id="player-mini-eq"><i></i><i></i><i></i><i></i><i></i></span>
                 </div>
               </div>
             </div>
 
-            <!-- Right: Docked Resizable Lyrics Sidebar -->
-            <aside class="win-sidebar" aria-label="Synced lyrics sidebar preview">
+            <!-- Right: Docked Resizable Lyrics Sidebar (Clickable Lines) -->
+            <aside class="win-sidebar" aria-label="Interactive synced lyrics sidebar">
               <div class="sb-header">
                 <div class="sb-track">
-                  <span class="sb-title">The Chase</span>
-                  <span class="sb-artist">Hearts2Hearts · Offline ✓</span>
+                  <div class="sb-title-row">
+                    <span class="mp-eq sb-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                    <span class="sb-title" id="demo-sb-title">The Chase</span>
+                  </div>
+                  <span class="sb-artist" id="demo-sb-artist">Hearts2Hearts · Offline Vault ✓</span>
                 </div>
-                <span class="sb-chip">Float</span>
+                <button type="button" class="sb-chip" id="sidebar-float-btn" title="Pop out Floating HUD">Float</button>
               </div>
 
-              <div class="sb-lyrics">
-                <div class="lyric-row past">
-                  <div class="l-orig">Hop, 내 모험의 첫걸음을 디뎌</div>
-                  <div class="l-hero">Hop, nae moheomui cheotgeoreumeul didyeo</div>
-                  <div class="l-trans" data-id="Hop, ambil langkah pertama dalam petualanganku" data-en="Hop, taking the first step of my adventure">Hop, ambil langkah pertama dalam petualanganku</div>
-                </div>
+              <div class="sb-lyrics" id="demo-lyrics-list" role="listbox" aria-label="Click any lyric line to seek">
+                <!-- Populated & animated at 60fps by app.js, with static initial markup for zero CLS & SEO -->
+                <button type="button" class="lyric-row past" data-line-idx="0">
+                  <span class="l-orig">Hop, 내 모험의 첫걸음을 디뎌</span>
+                  <span class="l-hero">Hop, nae moheomui cheotgeoreumeul didyeo</span>
+                  <span class="l-trans">Hop, ambil langkah pertama dalam petualanganku</span>
+                </button>
 
-                <div class="lyric-row active">
-                  <div class="l-orig">온통 수수께끼 난 더 알고 싶어</div>
-                  <div class="l-hero">
-                    <span class="lit">ontong susukkekki nan deo</span>
-                    <span class="dim"> algo sipeo</span>
-                  </div>
-                  <div class="l-trans" data-id="Itu semua misteri, aku ingin tahu lebih banyak" data-en="It's all a mystery, I want to know more">Itu semua misteri, aku ingin tahu lebih banyak</div>
-                </div>
+                <button type="button" class="lyric-row active" data-line-idx="1">
+                  <span class="l-orig">온통 수수께끼 난 더 알고 싶어</span>
+                  <span class="l-hero"><span class="lit">ontong susukkekki nan deo</span><span class="dim"> algo sipeo</span></span>
+                  <span class="l-trans">Itu semua misteri, aku ingin tahu lebih banyak</span>
+                </button>
 
-                <div class="lyric-row">
-                  <div class="l-orig">Sparkle, sparkle, 뭔가를 본 것 같아</div>
-                  <div class="l-hero">Sparkle, sparkle, mwongareul bon geot gata</div>
-                  <div class="l-trans" data-id="Berkilau, berkilau, sepertinya aku melihat sesuatu" data-en="Sparkle, sparkle, I think I saw something">Berkilau, berkilau, sepertinya aku melihat sesuatu</div>
-                </div>
+                <button type="button" class="lyric-row" data-line-idx="2">
+                  <span class="l-orig">Sparkle, sparkle, 뭔가를 본 것 같아</span>
+                  <span class="l-hero">Sparkle, sparkle, mwongareul bon geot gata</span>
+                  <span class="l-trans">Berkilau, berkilau, sepertinya aku melihat sesuatu</span>
+                </button>
               </div>
 
               <div class="sb-dock">
-                <span class="mono">-0.2s · 0.0s · +0.2s</span>
+                <div class="offset-controls">
+                  <button type="button" class="dock-btn mono" data-offset-step="-0.2" title="Shift lyrics -0.2s">-0.2s</button>
+                  <span class="mono" id="demo-offset-val">0.0s</span>
+                  <button type="button" class="dock-btn mono" data-offset-step="0.2" title="Shift lyrics +0.2s">+0.2s</button>
+                </div>
                 <span class="sb-badge">Synced</span>
                 <span class="sb-badge active" id="preview-dock-lang">ID</span>
               </div>
@@ -288,123 +348,54 @@
       </div>
     </section>
 
-    <!-- BENCHMARK STRIP -->
-    <section class="stats-strip shell" aria-label="Key architecture metrics">
-      <div class="stat-item">
-        <span class="stat-value">2.9 MB</span>
-        <span class="stat-label">Complete DMG installer vs. 180+ MB Electron apps</span>
+    <!-- INTERACTIVE 48-BAR ACOUSTIC FREQUENCY RIBBON + ARCHITECTURE BENCHMARKS -->
+    <section class="acoustic-ribbon shell" aria-label="Interactive frequency visualizer and architecture metrics">
+      <div class="ribbon-header">
+        <span class="mono ribbon-tag">60FPS COREAUDIO &amp; WEBKIT BRIDGE · MOVE CURSOR ACROSS SPECTRUM</span>
+        <span class="mono ribbon-freq" id="ribbon-freq-readout">HARMONIC LOCK · 48 BANDS ACTIVE</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-value">100% Swift</span>
-        <span class="stat-label">Native AppKit, SwiftUI, CoreText &amp; WKWebView</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value">Offline Ready</span>
-        <span class="stat-label">Auto-Romaji + permanent Offline Lyrics Vault</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value">Auto Updates</span>
-        <span class="stat-label">One-click DMG updates directly from GitHub Releases</span>
+      <div class="ribbon-bars" id="ribbon-spectrum-bars" aria-hidden="true"></div>
+
+      <div class="stats-strip">
+        <div class="stat-item">
+          <span class="stat-value mono">2.9 MB</span>
+          <span class="stat-label">Complete macOS DMG installer vs. 180+ MB Electron wrappers</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value mono">100% Swift</span>
+          <span class="stat-label">Native AppKit, SwiftUI, CoreText &amp; WKWebView with zero Node.js</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value mono">0 ms Network</span>
+          <span class="stat-label">On-device Korean, Japanese &amp; Mandarin Romanization + Offline Vault</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value mono">Auto-Update</span>
+          <span class="stat-label">One-click DMG updates pulled directly from GitHub Releases</span>
+        </div>
       </div>
     </section>
 
-    <!-- FEATURES (Editorial Asymmetric Rows) -->
-    <section id="features" class="features shell">
-      <div class="section-head">
-        <h2>Crafted for how you actually listen on MacBook.</h2>
-        <p>Every detail blends into macOS instead of fighting it—from live lyrics in your Menu Bar to instant keyboard navigation.</p>
-      </div>
+    <!-- SCREENSHOTS GALLERY WITH FILTER TABS -->
+    <section id="screenshots" class="screenshots shell reveal-on-scroll">
+      <div class="section-head split-head">
+        <div>
+          <h2>Inside YT Music Glass</h2>
+          <p>Real macOS Retina captures of the adaptive dark interface, floating karaoke overlays, Mini Player, Command Palette, and native Settings. Filter by surface or click any shot to inspect full-size.</p>
+        </div>
 
-      <article class="feature-row">
-        <div class="feature-text">
-          <h3>Three-tier karaoke lyrics with offline Auto-Romaji &amp; Smart Translate</h3>
-          <p>
-            Sing along to Korean, Japanese, Mandarin, or English tracks effortlessly. Non-Latin lines show compact original script above bold word-flow pronunciation, powered 100% offline via Revised Romanization and Apple CoreFoundation tokenizers.
-          </p>
-          <p>
-            Turn on Smart Translate to pick any source and target language—translations automatically hide whenever a song (or individual line) already matches your language.
-          </p>
+        <div class="filter-tabs" role="tablist" aria-label="Filter screenshots by feature surface">
+          <button type="button" class="filter-tab active" role="tab" aria-selected="true" data-filter="all">All Surfaces (7)</button>
+          <button type="button" class="filter-tab" role="tab" aria-selected="false" data-filter="lyrics">Lyrics &amp; Floating HUD</button>
+          <button type="button" class="filter-tab" role="tab" aria-selected="false" data-filter="macos">Mini Player &amp; Command</button>
+          <button type="button" class="filter-tab" role="tab" aria-selected="false" data-filter="system">Settings &amp; Updater</button>
         </div>
-        <div class="feature-panel">
-          <div class="fp-line">
-            <span class="fp-tag">Original</span>
-            <span>But you DM me, &ldquo;니가 궁금해서&rdquo;</span>
-          </div>
-          <div class="fp-line hero">
-            <span class="fp-tag accent">Romaji</span>
-            <span>But you DM me, &ldquo;niga gunggeumhaeseo&rdquo;</span>
-          </div>
-          <div class="fp-line">
-            <span class="fp-tag">Translate</span>
-            <span>Tapi kamu DM aku, &ldquo;karena aku penasaran padamu&rdquo;</span>
-          </div>
-          <div class="fp-footnote">
-            Pure Indonesian song while Target = ID? Translation stays hidden automatically.
-          </div>
-        </div>
-      </article>
-
-      <article class="feature-row reverse">
-        <div class="feature-text">
-          <h3>Docked resizable sidebar, Transparent Floating HUD &amp; Mini Player</h3>
-          <p>
-            Keep lyrics docked neatly on the right side with a smooth draggable divider, pop them out into a true-transparent click-through overlay (`0%–85%` opacity) that floats above VS Code or full-screen apps, or switch to the compact Mini Player (`⇧⌘P`) while you work.
-          </p>
-          <p>
-            Enable Menu Bar Live Lyrics (`⇧⌘B`) to follow the active line right next to your top macOS status bar without opening any window at all.
-          </p>
-        </div>
-        <div class="feature-panel shortcuts-panel">
-          <div class="sc-row"><span>Quick Command Palette &amp; Song Search</span><kbd>⌘K</kbd></div>
-          <div class="sc-row"><span>Docked Lyrics Sidebar</span><kbd>⇧⌘S</kbd></div>
-          <div class="sc-row"><span>Transparent Floating Lyrics</span><kbd>⇧⌘L</kbd></div>
-          <div class="sc-row"><span>Apple Music–style Mini Player</span><kbd>⇧⌘P</kbd></div>
-          <div class="sc-row"><span>Menu Bar Live Lyrics</span><kbd>⇧⌘B</kbd></div>
-          <div class="sc-row"><span>Settings (Roboto / SF Pro &amp; Launch at Login)</span><kbd>⌘,</kbd></div>
-        </div>
-      </article>
-
-      <article class="feature-row">
-        <div class="feature-text">
-          <h3>Permanent Offline Lyrics Vault synced with YouTube Music Downloads</h3>
-          <p>
-            Open your YouTube Music Downloads page or click Download on any album or playlist while online—YT Music Glass quietly fetches synced lyrics and active translations in the background and pins them permanently on disk.
-          </p>
-          <p>
-            Three-tier resilient matching ensures your downloaded tracks still resolve lyrics cleanly even when Wi-Fi is off, complete with macOS Control Center, AirPods, and keyboard media key controls.
-          </p>
-        </div>
-        <div class="feature-panel vault-panel">
-          <div class="vault-row">
-            <span>YouTube Music Downloads detected</span>
-            <span class="vault-pill">Auto-Sync</span>
-          </div>
-          <div class="vault-row">
-            <span>Synced LRC + Translation pinned locally</span>
-            <span class="vault-pill ok">Saved ✓</span>
-          </div>
-          <div class="vault-row">
-            <span>Protected from temp cache cleanup</span>
-            <span class="vault-pill ok">Permanent</span>
-          </div>
-          <div class="vault-row">
-            <span>Auto-Romaji engine (KR / JP / ZH)</span>
-            <span class="vault-pill ok">100% Offline</span>
-          </div>
-        </div>
-      </article>
-    </section>
-
-    <!-- SCREENSHOTS GALLERY -->
-    <section id="screenshots" class="screenshots shell">
-      <div class="section-head">
-        <h2>Inside YT Music Glass</h2>
-        <p>Real macOS screenshots of the adaptive dark interface, floating lyrics overlays, Mini Player, Command Palette, and native Settings. Click any shot to zoom.</p>
       </div>
 
       <button
         type="button"
         class="shot-card shot-featured"
+        data-category="lyrics"
         data-shot-src="/assets/screenshots/main.jpg"
         data-shot-title="Main Window &amp; Docked Lyrics Sidebar"
         data-shot-desc="Dynamic album-art ambient theming, Spotify-style floating player bar, resizable Lyrics Sidebar, and Menu Bar Live Lyrics."
@@ -418,15 +409,16 @@
           decoding="async"
         >
         <div class="shot-meta">
-          <strong>Main Window &amp; Docked Lyrics Sidebar</strong>
-          <span>Adaptive album-art theming, Spotify-style player bar, resizable Lyrics Sidebar &amp; Menu Bar Live Lyrics.</span>
+          <strong>Main Window &amp; Docked Lyrics Sidebar <kbd>⇧⌘S</kbd></strong>
+          <span>Adaptive album-art gold theme, Spotify-style player bar, resizable Lyrics Sidebar &amp; Menu Bar Live Lyrics.</span>
         </div>
       </button>
 
-      <div class="shot-grid">
+      <div class="shot-grid" id="screenshots-grid">
         <button
           type="button"
           class="shot-card"
+          data-category="lyrics"
           data-shot-src="/assets/screenshots/floating-hud.jpg"
           data-shot-title="Floating Lyrics HUD (⇧⌘L)"
           data-shot-desc="Full karaoke card with 100% offline Auto-Romaji, Smart Translate, sync offset controls, and live opacity slider."
@@ -448,6 +440,7 @@
         <button
           type="button"
           class="shot-card"
+          data-category="lyrics"
           data-shot-src="/assets/screenshots/floating-compact.jpg"
           data-shot-title="0% Transparent Click-Through Mode (⇧⌘K / ⇧⌘M)"
           data-shot-desc="Pure floating karaoke text with crisp double shadow hovering cleanly over your code editor or browser."
@@ -469,13 +462,14 @@
         <button
           type="button"
           class="shot-card"
+          data-category="macos"
           data-shot-src="/assets/screenshots/mini-player.jpg"
-          data-shot-title="Apple Music–Style Mini Player (⇧⌘P)"
+          data-shot-title="Apple Music Style Mini Player (⇧⌘P)"
           data-shot-desc="Compact 356×136pt Obsidian Glass floating widget with album art, equalizer bars, synced lyric strip, and seek bar."
         >
           <img
             src="/assets/screenshots/mini-player.jpg"
-            alt="Compact Apple Music-style Obsidian Glass floating Mini Player with album cover and live lyric line"
+            alt="Compact Apple Music style Obsidian Glass floating Mini Player with album cover and live lyric line"
             width="1200"
             height="591"
             loading="lazy"
@@ -490,6 +484,7 @@
         <button
           type="button"
           class="shot-card"
+          data-category="macos"
           data-shot-src="/assets/screenshots/command-palette.jpg"
           data-shot-title="Quick Command Palette (⌘K)"
           data-shot-desc="Raycast-style fuzzy launcher to jump to Downloads, toggle modes, switch translate languages, or search YouTube Music directly."
@@ -511,6 +506,7 @@
         <button
           type="button"
           class="shot-card"
+          data-category="system"
           data-shot-src="/assets/screenshots/settings.jpg"
           data-shot-title="Native Settings (⌘,)"
           data-shot-desc="Switch live between YouTube Music Roboto and macOS SF Pro, configure Auto-Romaji, Smart Translate, Launch at Login, and Offline Vault."
@@ -532,6 +528,7 @@
         <button
           type="button"
           class="shot-card"
+          data-category="system"
           data-shot-src="/assets/screenshots/about.jpg"
           data-shot-title="About &amp; GitHub Releases Auto-Updater"
           data-shot-desc="Built-in version checker and one-click DMG updater pulling directly from GitHub Releases."
@@ -552,24 +549,141 @@
       </div>
     </section>
 
+    <!-- INTERACTIVE ENGINEERING LAB & FEATURES -->
+    <section id="features" class="features shell">
+      <div class="section-head">
+        <h2>Crafted for how you actually listen on MacBook.</h2>
+        <p>Every surface integrates directly with macOS AppKit and CoreText, from live lyrics in your top Menu Bar to offline script romanization.</p>
+      </div>
+
+      <!-- Row 1: Interactive Multi-Script Romaji & Smart Translate Lab -->
+      <article class="feature-row reveal-on-scroll">
+        <div class="feature-text">
+          <h3>Three-tier karaoke lyrics with offline Auto-Romaji &amp; Smart Translate</h3>
+          <p>
+            Sing along to Korean, Japanese, Mandarin, or English tracks without waiting on network APIs. Non-Latin lines render compact original script above bold word-flow pronunciation, computed 100% offline via Revised Romanization phonological rules and Apple CoreFoundation tokenizers.
+          </p>
+          <p>
+            Enable Smart Translate to pick any source and target language. When a song or line already matches your target language, redundant translations hide automatically.
+          </p>
+        </div>
+
+        <div class="feature-panel romaji-lab">
+          <div class="lab-toolbar">
+            <span class="mono lab-badge">LIVE ROMANIZER ENGINE</span>
+            <div class="lab-script-tabs" role="group" aria-label="Test script romanization">
+              <button type="button" class="lab-tab active" data-script="kr">Korean (Hangul)</button>
+              <button type="button" class="lab-tab" data-script="jp">Japanese (Kanji)</button>
+              <button type="button" class="lab-tab" data-script="id">Indonesian (Auto-Skip)</button>
+            </div>
+          </div>
+
+          <div class="fp-line">
+            <span class="fp-tag">Original</span>
+            <span id="lab-orig-text">But you DM me, &ldquo;니가 궁금해서&rdquo;</span>
+          </div>
+          <div class="fp-line hero">
+            <span class="fp-tag accent">Romaji</span>
+            <span id="lab-romaji-text" class="lab-sweep-text">But you DM me, &ldquo;niga gunggeumhaeseo&rdquo;</span>
+          </div>
+          <div class="fp-line" id="lab-trans-row">
+            <span class="fp-tag">Translate</span>
+            <span id="lab-trans-text">Tapi kamu DM aku, &ldquo;karena aku penasaran padamu&rdquo;</span>
+          </div>
+          <div class="fp-footnote" id="lab-footnote">
+            Phonological liaison rule active: Hangul syllables romanize offline in &lt;0.2 ms.
+          </div>
+        </div>
+      </article>
+
+      <!-- Row 2: Interactive Floating HUD Opacity & Click-Through Simulator -->
+      <article class="feature-row reverse reveal-on-scroll">
+        <div class="feature-text">
+          <h3>Test the Transparent Floating HUD &amp; Click-Through Lock</h3>
+          <p>
+            Keep lyrics docked on the right with a draggable divider (<code>260pt</code> to <code>760pt</code>), or pop them out into an <code>NSPanel</code> overlay that floats across all macOS Spaces and full-screen apps.
+          </p>
+          <p>
+            Drag the opacity slider below from <strong>0% (pure click-through karaoke text with double drop shadow)</strong> up to <strong>85% native frosted glass</strong> to see how it sits over your daily workspace.
+          </p>
+        </div>
+
+        <div class="feature-panel hud-simulator">
+          <div class="sim-controls">
+            <label for="hud-opacity-range" class="mono">HUD Background Opacity: <strong id="hud-opacity-readout">0% (Click-Through)</strong></label>
+            <input type="range" id="hud-opacity-range" min="0" max="85" value="0" step="1">
+          </div>
+
+          <div class="sim-code-backdrop">
+            <div class="sim-code-lines mono" aria-hidden="true">
+              <span>01  import AppKit</span>
+              <span>02  import SwiftUI</span>
+              <span>03  final class FloatingHudPanel: NSPanel {</span>
+              <span>04      override var canBecomeKey: Bool { true }</span>
+              <span>05      // Mouse clicks pass straight to VS Code below</span>
+              <span>06  }</span>
+            </div>
+
+            <div class="sim-hud-card" id="sim-hud-card">
+              <div class="sim-hud-jp">二人だけの空が広がる夜に</div>
+              <div class="sim-hud-romaji">
+                <span class="lit">futari dake no sora ga</span>
+                <span class="dim"> hirogaru yoru ni</span>
+              </div>
+              <div class="sim-hud-id">Di malam saat langit hanya milik kita berdua</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Row 3: Permanent Offline Lyrics Vault & Native Shortcuts -->
+      <article class="feature-row reveal-on-scroll">
+        <div class="feature-text">
+          <h3>Permanent Offline Lyrics Vault synced with YouTube Music Downloads</h3>
+          <p>
+            Open your YouTube Music Downloads page or click Download on any track, album, or playlist while online. YT Music Glass detects your offline library in the background and permanently pins synced LRC lyrics and active translations to local storage.
+          </p>
+          <p>
+            Three-tier resilient matching (<code>trackKey</code> → <code>videoId</code> → normalized <code>artist + title</code>) resolves your songs cleanly when Wi-Fi is off, paired with macOS Control Center and AirPods media controls.
+          </p>
+        </div>
+
+        <div class="feature-panel vault-panel">
+          <div class="vault-pipeline" aria-hidden="true">
+            <span class="vp-node">YTM Downloads</span>
+            <span class="vp-stream"><i></i></span>
+            <span class="vp-node">LRCLIB + Translate</span>
+            <span class="vp-stream"><i></i></span>
+            <span class="vp-node active">Pinned Disk Vault ✓</span>
+          </div>
+          <div class="sc-row"><span>Quick Command Palette &amp; Song Search</span><kbd>⌘K</kbd></div>
+          <div class="sc-row"><span>Docked Lyrics Sidebar</span><kbd>⇧⌘S</kbd></div>
+          <div class="sc-row"><span>Transparent Floating Lyrics HUD</span><kbd>⇧⌘L</kbd></div>
+          <div class="sc-row"><span>Apple Music Style Mini Player</span><kbd>⇧⌘P</kbd></div>
+          <div class="sc-row"><span>Menu Bar Live Lyrics</span><kbd>⇧⌘B</kbd></div>
+          <div class="sc-row"><span>Save Track Lyrics to Offline Vault</span><kbd>⇧⌘D</kbd></div>
+        </div>
+      </article>
+    </section>
+
     <!-- INSTALL GUIDE -->
-    <section id="install" class="install shell">
+    <section id="install" class="install shell reveal-on-scroll">
       <div class="section-head">
         <h2>Install in 30 seconds</h2>
-        <p>Download the signed-free indie macOS DMG or build directly from source with Xcode Command Line Tools.</p>
+        <p>Download the standalone macOS DMG or compile directly from source with Xcode Command Line Tools.</p>
       </div>
 
       <div class="install-grid">
         <div class="install-step">
-          <span class="step-index">1</span>
+          <span class="step-index mono">01</span>
           <h3>Download &amp; Drag to Applications</h3>
           <p>Download the latest <code>YT-Music-Glass-macOS-arm64.dmg</code>, open it, and drag <strong>YT Music Glass.app</strong> into your <strong>Applications</strong> folder.</p>
         </div>
 
         <div class="install-step">
-          <span class="step-index">2</span>
+          <span class="step-index mono">02</span>
           <h3>First-Launch macOS Gatekeeper</h3>
-          <p>Since this is an independent open-source release without a paid Apple Developer ID, right-click the app and choose <strong>Open</strong>—or clear quarantine in Terminal:</p>
+          <p>Since this is a free open-source release without a paid Apple Developer ID, right-click the app and choose <strong>Open</strong>, or clear quarantine once in Terminal:</p>
           <div class="code-box">
             <code id="cmd-xattr">xattr -cr "/Applications/YT Music Glass.app"</code>
             <button type="button" class="copy-btn" data-copy="cmd-xattr">Copy</button>
@@ -577,9 +691,9 @@
         </div>
 
         <div class="install-step">
-          <span class="step-index">3</span>
+          <span class="step-index mono">03</span>
           <h3>Or Build Directly From Source</h3>
-          <p>Zero Node.js or CocoaPods needed—just macOS 14+ and Apple Command Line Tools:</p>
+          <p>Zero Node.js or CocoaPods required. Compile on macOS 14+ with Apple Command Line Tools:</p>
           <div class="code-box">
             <code id="cmd-build">git clone https://github.com/ravizikrillah/yt-music-glass.git &amp;&amp; cd yt-music-glass &amp;&amp; make install</code>
             <button type="button" class="copy-btn" data-copy="cmd-build">Copy</button>
@@ -589,7 +703,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="faq shell">
+    <section id="faq" class="faq shell reveal-on-scroll">
       <div class="section-head">
         <h2>Frequently asked questions</h2>
       </div>
@@ -597,22 +711,22 @@
       <div class="faq-list">
         <details open>
           <summary>Why build YT Music Glass in Swift instead of Electron?</summary>
-          <p>Electron ships a separate Chromium runtime with every app, easily taking 180–250 MB on disk and high idle memory. YT Music Glass uses macOS's native WebKit (<code>WKWebView</code>) paired with native SwiftUI and AppKit windows, keeping the complete installer around 2.9 MB while supporting true transparent click-through HUDs, Menu Bar lyrics, and native media keys.</p>
+          <p>Electron bundles a full Chromium and Node.js runtime with every app, taking 180 to 250 MB on disk. YT Music Glass uses macOS's built-in WebKit (<code>WKWebView</code>) paired with native SwiftUI and AppKit panels, keeping the installer at 2.9 MB while enabling true transparent click-through HUDs, Menu Bar live lyrics, and native media keys.</p>
         </details>
 
         <details>
           <summary>Is my Google / YouTube Music sign-in safe?</summary>
-          <p>Yes. You sign in directly on official <code>music.youtube.com</code> inside macOS's standard <code>WKWebView</code> data store. YT Music Glass never reads, transmits, or stores your password or cookies on any third-party server, and the full Swift source code is open for inspection on GitHub.</p>
+          <p>Yes. You sign in directly on official <code>music.youtube.com</code> inside macOS's standard <code>WKWebView</code> data store. YT Music Glass never reads, transmits, or stores your credentials on any external server, and every line of Swift source code is open on GitHub.</p>
         </details>
 
         <details>
           <summary>How do automatic updates work?</summary>
-          <p>The app periodically checks the public GitHub Releases API for <code>ravizikrillah/yt-music-glass</code>. When a newer tag is published, you can click <strong>Check for Updates</strong> in the App Menu or About window to download and open the latest <code>.dmg</code> directly.</p>
+          <p>The app checks the public GitHub Releases API for <code>ravizikrillah/yt-music-glass</code>. When a new version tag is published, click <strong>Check for Updates</strong> in the app menu or About window to stream the latest <code>.dmg</code> directly to your Downloads folder and mount it automatically.</p>
         </details>
 
         <details>
           <summary>Can I switch between YouTube Music's Roboto font and macOS SF Pro?</summary>
-          <p>Yes. Open Settings (<code>⌘,</code>) or Command Palette (<code>⌘K</code>) to switch live between YouTube Music's bundled <strong>Roboto</strong> and Apple's native <strong>SF Pro</strong> across both the lyrics panels and the YouTube Music interface.</p>
+          <p>Yes. Open Settings (<code>⌘,</code>) or Command Palette (<code>⌘K</code>) to switch live between bundled <strong>Roboto</strong> and Apple's native <strong>SF Pro</strong> across both the lyrics panels and the YouTube Music web interface.</p>
         </details>
       </div>
     </section>
@@ -621,7 +735,7 @@
   <footer class="site-footer">
     <div class="shell footer-inner">
       <div class="footer-brand">
-        <img src="/assets/favicon.png" alt="" width="24" height="24" loading="lazy">
+        <img src="/assets/favicon.png" alt="YT Music Glass icon" width="24" height="24" loading="lazy">
         <div>
           <strong>YT Music Glass</strong>
           <p>Created by <a href="https://github.com/ravizikrillah" target="_blank" rel="noopener noreferrer">Ravi Bangkit Nur Zikrillah</a> (@ravizikrillah)</p>
