@@ -74,5 +74,45 @@
     });
   });
 
+  // 4. Native <dialog> screenshot lightbox with Safari closedby fallback
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxTitle = document.getElementById('lightbox-title');
+  const lightboxDesc = document.getElementById('lightbox-desc');
+
+  if (lightbox && lightboxImg && lightboxTitle && lightboxDesc) {
+    document.querySelectorAll('[data-shot-src]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const src = btn.getAttribute('data-shot-src') || '';
+        const title = btn.getAttribute('data-shot-title') || 'Screenshot Preview';
+        const desc = btn.getAttribute('data-shot-desc') || '';
+        const thumb = btn.querySelector('img');
+        lightboxImg.src = src;
+        lightboxImg.alt = (thumb && thumb.alt) || title;
+        lightboxTitle.textContent = title;
+        lightboxDesc.textContent = desc;
+        lightbox.showModal();
+      });
+    });
+
+    lightbox.addEventListener('close', () => {
+      lightbox.returnValue = '';
+    });
+
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      const outside = (e) => {
+        const r = lightbox.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      let pressedOutside = false;
+      lightbox.addEventListener('pointerdown', (e) => {
+        pressedOutside = outside(e);
+      });
+      lightbox.addEventListener('pointerup', (e) => {
+        if (pressedOutside && outside(e)) lightbox.close();
+      });
+    }
+  }
+
   syncLatestRelease();
 })();

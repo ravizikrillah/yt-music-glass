@@ -3,3 +3,4 @@ dist-macos/
 __pycache__/
 .DS_Store
 *.log
+.vercel/
