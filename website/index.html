@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YT Music Glass — Native YouTube Music Client for macOS (Free DMG)</title>
+  <meta name="description" content="Download YT Music Glass (.dmg) — a fast, 3.2 MB native Swift YouTube Music desktop app for macOS with zero Electron, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and Offline Lyrics Vault.">
+  <meta name="keywords" content="YouTube Music macOS, YouTube Music Mac DMG, YouTube Music desktop client MacBook, native Swift YouTube Music, YouTube Music lyrics macOS, Romaji karaoke lyrics Mac, Apple Silicon YouTube Music">
+  <meta name="author" content="Ravi Bangkit Nur Zikrillah">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#030303">
+  <link rel="canonical" href="https://yt-music-glass.vercel.app/">
+
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/app-icon.png">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yt-music-glass.vercel.app/">
+  <meta property="og:title" content="YT Music Glass — Native YouTube Music Client for macOS">
+  <meta property="og:description" content="A 3.2 MB pure Swift YouTube Music client for MacBook. Obsidian Liquid Glass UI, Spotify-style player bar, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, and Offline Vault.">
+  <meta property="og:image" content="https://yt-music-glass.vercel.app/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="YT Music Glass">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YT Music Glass — Native YouTube Music Client for macOS">
+  <meta name="twitter:description" content="Download the 3.2 MB native Swift DMG for macOS. Zero Electron, synced lyrics, Auto-Romaji, Smart Translate, Mini Player & Offline Vault.">
+  <meta name="twitter:image" content="https://yt-music-glass.vercel.app/assets/og-image.png">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles.css">
+
+  <!-- Structured Data: SoftwareApplication + FAQPage for Rich SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "YT Music Glass",
+    "operatingSystem": "macOS 14.0 or later (Apple Silicon)",
+    "applicationCategory": "MultimediaApplication",
+    "softwareVersion": "1.0.0",
+    "fileSize": "3.2MB",
+    "url": "https://yt-music-glass.vercel.app/",
+    "downloadUrl": "https://github.com/ravizikrillah/yt-music-glass/releases/latest",
+    "image": "https://yt-music-glass.vercel.app/assets/og-image.png",
+    "description": "Lightweight standalone native Swift macOS desktop client for YouTube Music and YouTube featuring synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Floating Mini Player, Menu Bar lyrics, and Offline Lyrics Vault.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Ravi Bangkit Nur Zikrillah",
+      "url": "https://github.com/ravizikrillah"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does YT Music Glass use Electron?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. YT Music Glass is written in 100% pure Swift, SwiftUI, AppKit, and WKWebView. The complete macOS DMG installer is around 3.2 MB instead of 180+ MB like Electron wrappers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do auto-updates work on macOS?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "YT Music Glass checks GitHub Releases automatically on launch (or manually via Check for Updates) and downloads the latest DMG installer directly inside the app."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do lyrics, Romaji, and translations work offline?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Opening your YouTube Music Downloads page or clicking Download automatically pins synced lyrics and active translations into the permanent Offline Vault. Korean, Japanese, and Mandarin romanization runs 100% offline on your Mac."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I open YT Music Glass if macOS Gatekeeper shows a warning?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Because YT Music Glass is a free open-source indie macOS app, right-click YT Music Glass.app in Applications and choose Open, or run xattr -cr '/Applications/YT Music Glass.app' in Terminal."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/">
+        <img src="/assets/favicon.png" alt="" width="28" height="28">
+        <span>YT Music Glass</span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </nav>
+
+      <a class="nav-cta" data-download-link href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+        Download DMG
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero shell">
+      <div class="hero-copy">
+        <div class="version-line">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="release-meta">v1.0.0 for macOS 14+ · Apple Silicon · 3.2 MB DMG</span>
+        </div>
+
+        <h1>YouTube Music for Mac, built in native Swift.</h1>
+
+        <p class="lead">
+          No Electron bloat, no browser tabs. YT Music Glass wraps YouTube Music in a seamless dark glass macOS app with synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and an Offline Vault.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn-primary" id="hero-download-btn" data-download-link href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="download-btn-label">Download for macOS (.dmg)</span>
+          </a>
+
+          <a class="btn-secondary" href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.95 10.95 0 0 1 5.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.79.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+            </svg>
+            <span>Source on GitHub</span>
+          </a>
+        </div>
+
+        <p class="hero-note">
+          Free &amp; open source. Built-in GitHub Releases auto-updater keeps your Mac on the latest version.
+        </p>
+      </div>
+
+      <!-- HERO VISUAL STAGE -->
+      <div class="hero-stage" aria-label="YT Music Glass desktop app preview">
+        <div class="stage-glow" aria-hidden="true"></div>
+
+        <div class="app-window">
+          <!-- Native macOS Unified Titlebar -->
+          <div class="win-toolbar">
+            <div class="traffic-lights" aria-hidden="true">
+              <span class="tl red"></span>
+              <span class="tl yellow"></span>
+              <span class="tl green"></span>
+            </div>
+
+            <span class="tb-pill mono">⌘K</span>
+
+            <div class="tb-segmented">
+              <span class="active">YouTube Music</span>
+              <span>YouTube</span>
+            </div>
+
+            <div class="tb-right">
+              <button type="button" class="tb-pill active" id="preview-lang-toggle" title="Preview Smart Translate language">
+                Translate · Auto→ID
+              </button>
+              <span class="tb-pill active">Lyrics</span>
+            </div>
+          </div>
+
+          <!-- Split App Body -->
+          <div class="win-body">
+            <!-- Left: Seamless YouTube Music Canvas -->
+            <div class="win-canvas">
+              <div class="canvas-brand">
+                <span class="dyn-disc" aria-hidden="true"></span>
+                <span class="dyn-word">Music</span>
+                <span class="canvas-search">Search songs, albums, artists…</span>
+              </div>
+
+              <div class="hero-icon-showcase">
+                <img
+                  src="/assets/app-icon.png"
+                  alt="YT Music Glass macOS liquid glass app icon"
+                  width="156"
+                  height="156"
+                  fetchpriority="high"
+                  class="floating-app-icon"
+                >
+                <div class="showcase-caption">
+                  <strong>Obsidian Liquid Glass</strong>
+                  <span>Dynamic logo, progress track &amp; controls adapt to every album cover.</span>
+                </div>
+              </div>
+
+              <!-- Spotify-style Floating Glass Player Bar -->
+              <div class="mock-player-bar">
+                <div class="mp-left">
+                  <div class="mp-art" aria-hidden="true"></div>
+                  <div class="mp-meta">
+                    <span class="mp-title">The Chase</span>
+                    <span class="mp-artist">Hearts2Hearts</span>
+                  </div>
+                </div>
+                <div class="mp-center">
+                  <div class="mp-controls" aria-hidden="true">
+                    <span>⏮</span>
+                    <span class="mp-play">⏸</span>
+                    <span>⏭</span>
+                  </div>
+                  <div class="mp-progress">
+                    <span class="mono">0:58</span>
+                    <div class="mp-track"><div class="mp-fill"></div></div>
+                    <span class="mono">2:59</span>
+                  </div>
+                </div>
+                <div class="mp-right" aria-hidden="true">
+                  <span class="mp-eq"><i></i><i></i><i></i><i></i></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Docked Resizable Lyrics Sidebar -->
+            <aside class="win-sidebar" aria-label="Synced lyrics sidebar preview">
+              <div class="sb-header">
+                <div class="sb-track">
+                  <span class="sb-title">The Chase</span>
+                  <span class="sb-artist">Hearts2Hearts · Offline ✓</span>
+                </div>
+                <span class="sb-chip">Float</span>
+              </div>
+
+              <div class="sb-lyrics">
+                <div class="lyric-row past">
+                  <div class="l-orig">Hop, 내 모험의 첫걸음을 디뎌</div>
+                  <div class="l-hero">Hop, nae moheomui cheotgeoreumeul didyeo</div>
+                  <div class="l-trans" data-id="Hop, ambil langkah pertama dalam petualanganku" data-en="Hop, taking the first step of my adventure">Hop, ambil langkah pertama dalam petualanganku</div>
+                </div>
+
+                <div class="lyric-row active">
+                  <div class="l-orig">온통 수수께끼 난 더 알고 싶어</div>
+                  <div class="l-hero">
+                    <span class="lit">ontong susukkekki nan deo</span>
+                    <span class="dim"> algo sipeo</span>
+                  </div>
+                  <div class="l-trans" data-id="Itu semua misteri, aku ingin tahu lebih banyak" data-en="It's all a mystery, I want to know more">Itu semua misteri, aku ingin tahu lebih banyak</div>
+                </div>
+
+                <div class="lyric-row">
+                  <div class="l-orig">Sparkle, sparkle, 뭔가를 본 것 같아</div>
+                  <div class="l-hero">Sparkle, sparkle, mwongareul bon geot gata</div>
+                  <div class="l-trans" data-id="Berkilau, berkilau, sepertinya aku melihat sesuatu" data-en="Sparkle, sparkle, I think I saw something">Berkilau, berkilau, sepertinya aku melihat sesuatu</div>
+                </div>
+              </div>
+
+              <div class="sb-dock">
+                <span class="mono">-0.2s · 0.0s · +0.2s</span>
+                <span class="sb-badge">Synced</span>
+                <span class="sb-badge active" id="preview-dock-lang">ID</span>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENCHMARK STRIP -->
+    <section class="stats-strip shell" aria-label="Key architecture metrics">
+      <div class="stat-item">
+        <span class="stat-value">3.2 MB</span>
+        <span class="stat-label">Complete DMG installer vs. 180+ MB Electron apps</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">100% Swift</span>
+        <span class="stat-label">Native AppKit, SwiftUI, CoreText &amp; WKWebView</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">Offline Ready</span>
+        <span class="stat-label">Auto-Romaji + permanent Offline Lyrics Vault</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">Auto Updates</span>
+        <span class="stat-label">One-click DMG updates directly from GitHub Releases</span>
+      </div>
+    </section>
+
+    <!-- FEATURES (Editorial Asymmetric Rows) -->
+    <section id="features" class="features shell">
+      <div class="section-head">
+        <h2>Crafted for how you actually listen on MacBook.</h2>
+        <p>Every detail blends into macOS instead of fighting it—from live lyrics in your Menu Bar to instant keyboard navigation.</p>
+      </div>
+
+      <article class="feature-row">
+        <div class="feature-text">
+          <h3>Three-tier karaoke lyrics with offline Auto-Romaji &amp; Smart Translate</h3>
+          <p>
+            Sing along to Korean, Japanese, Mandarin, or English tracks effortlessly. Non-Latin lines show compact original script above bold word-flow pronunciation, powered 100% offline via Revised Romanization and Apple CoreFoundation tokenizers.
+          </p>
+          <p>
+            Turn on Smart Translate to pick any source and target language—translations automatically hide whenever a song (or individual line) already matches your language.
+          </p>
+        </div>
+        <div class="feature-panel">
+          <div class="fp-line">
+            <span class="fp-tag">Original</span>
+            <span>But you DM me, &ldquo;니가 궁금해서&rdquo;</span>
+          </div>
+          <div class="fp-line hero">
+            <span class="fp-tag accent">Romaji</span>
+            <span>But you DM me, &ldquo;niga gunggeumhaeseo&rdquo;</span>
+          </div>
+          <div class="fp-line">
+            <span class="fp-tag">Translate</span>
+            <span>Tapi kamu DM aku, &ldquo;karena aku penasaran padamu&rdquo;</span>
+          </div>
+          <div class="fp-footnote">
+            Pure Indonesian song while Target = ID? Translation stays hidden automatically.
+          </div>
+        </div>
+      </article>
+
+      <article class="feature-row reverse">
+        <div class="feature-text">
+          <h3>Docked resizable sidebar, Transparent Floating HUD &amp; Mini Player</h3>
+          <p>
+            Keep lyrics docked neatly on the right side with a smooth draggable divider, pop them out into a true-transparent click-through overlay (`0%–85%` opacity) that floats above VS Code or full-screen apps, or switch to the compact Mini Player (`⇧⌘P`) while you work.
+          </p>
+          <p>
+            Enable Menu Bar Live Lyrics (`⇧⌘B`) to follow the active line right next to your top macOS status bar without opening any window at all.
+          </p>
+        </div>
+        <div class="feature-panel shortcuts-panel">
+          <div class="sc-row"><span>Quick Command Palette &amp; Song Search</span><kbd>⌘K</kbd></div>
+          <div class="sc-row"><span>Docked Lyrics Sidebar</span><kbd>⇧⌘S</kbd></div>
+          <div class="sc-row"><span>Transparent Floating Lyrics</span><kbd>⇧⌘L</kbd></div>
+          <div class="sc-row"><span>Apple Music–style Mini Player</span><kbd>⇧⌘P</kbd></div>
+          <div class="sc-row"><span>Menu Bar Live Lyrics</span><kbd>⇧⌘B</kbd></div>
+          <div class="sc-row"><span>Settings (Roboto / SF Pro &amp; Launch at Login)</span><kbd>⌘,</kbd></div>
+        </div>
+      </article>
+
+      <article class="feature-row">
+        <div class="feature-text">
+          <h3>Permanent Offline Lyrics Vault synced with YouTube Music Downloads</h3>
+          <p>
+            Open your YouTube Music Downloads page or click Download on any album or playlist while online—YT Music Glass quietly fetches synced lyrics and active translations in the background and pins them permanently on disk.
+          </p>
+          <p>
+            Three-tier resilient matching ensures your downloaded tracks still resolve lyrics cleanly even when Wi-Fi is off, complete with macOS Control Center, AirPods, and keyboard media key controls.
+          </p>
+        </div>
+        <div class="feature-panel vault-panel">
+          <div class="vault-row">
+            <span>YouTube Music Downloads detected</span>
+            <span class="vault-pill">Auto-Sync</span>
+          </div>
+          <div class="vault-row">
+            <span>Synced LRC + Translation pinned locally</span>
+            <span class="vault-pill ok">Saved ✓</span>
+          </div>
+          <div class="vault-row">
+            <span>Protected from temp cache cleanup</span>
+            <span class="vault-pill ok">Permanent</span>
+          </div>
+          <div class="vault-row">
+            <span>Auto-Romaji engine (KR / JP / ZH)</span>
+            <span class="vault-pill ok">100% Offline</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- INSTALL GUIDE -->
+    <section id="install" class="install shell">
+      <div class="section-head">
+        <h2>Install in 30 seconds</h2>
+        <p>Download the signed-free indie macOS DMG or build directly from source with Xcode Command Line Tools.</p>
+      </div>
+
+      <div class="install-grid">
+        <div class="install-step">
+          <span class="step-index">1</span>
+          <h3>Download &amp; Drag to Applications</h3>
+          <p>Download the latest <code>YT-Music-Glass-macOS-arm64.dmg</code>, open it, and drag <strong>YT Music Glass.app</strong> into your <strong>Applications</strong> folder.</p>
+        </div>
+
+        <div class="install-step">
+          <span class="step-index">2</span>
+          <h3>First-Launch macOS Gatekeeper</h3>
+          <p>Since this is an independent open-source release without a paid Apple Developer ID, right-click the app and choose <strong>Open</strong>—or clear quarantine in Terminal:</p>
+          <div class="code-box">
+            <code id="cmd-xattr">xattr -cr "/Applications/YT Music Glass.app"</code>
+            <button type="button" class="copy-btn" data-copy="cmd-xattr">Copy</button>
+          </div>
+        </div>
+
+        <div class="install-step">
+          <span class="step-index">3</span>
+          <h3>Or Build Directly From Source</h3>
+          <p>Zero Node.js or CocoaPods needed—just macOS 14+ and Apple Command Line Tools:</p>
+          <div class="code-box">
+            <code id="cmd-build">git clone https://github.com/ravizikrillah/yt-music-glass.git &amp;&amp; cd yt-music-glass &amp;&amp; make install</code>
+            <button type="button" class="copy-btn" data-copy="cmd-build">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="faq shell">
+      <div class="section-head">
+        <h2>Frequently asked questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <details open>
+          <summary>Why build YT Music Glass in Swift instead of Electron?</summary>
+          <p>Electron ships a separate Chromium runtime with every app, easily taking 180–250 MB on disk and high idle memory. YT Music Glass uses macOS's native WebKit (<code>WKWebView</code>) paired with native SwiftUI and AppKit windows, keeping the complete installer around 3.2 MB while supporting true transparent click-through HUDs, Menu Bar lyrics, and native media keys.</p>
+        </details>
+
+        <details>
+          <summary>Is my Google / YouTube Music sign-in safe?</summary>
+          <p>Yes. You sign in directly on official <code>music.youtube.com</code> inside macOS's standard <code>WKWebView</code> data store. YT Music Glass never reads, transmits, or stores your password or cookies on any third-party server, and the full Swift source code is open for inspection on GitHub.</p>
+        </details>
+
+        <details>
+          <summary>How do automatic updates work?</summary>
+          <p>The app periodically checks the public GitHub Releases API for <code>ravizikrillah/yt-music-glass</code>. When a newer tag is published, you can click <strong>Check for Updates</strong> in the App Menu or About window to download and open the latest <code>.dmg</code> directly.</p>
+        </details>
+
+        <details>
+          <summary>Can I switch between YouTube Music's Roboto font and macOS SF Pro?</summary>
+          <p>Yes. Open Settings (<code>⌘,</code>) or Command Palette (<code>⌘K</code>) to switch live between YouTube Music's bundled <strong>Roboto</strong> and Apple's native <strong>SF Pro</strong> across both the lyrics panels and the YouTube Music interface.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <div class="footer-brand">
+        <img src="/assets/favicon.png" alt="" width="24" height="24" loading="lazy">
+        <div>
+          <strong>YT Music Glass</strong>
+          <p>Created by <a href="https://github.com/ravizikrillah" target="_blank" rel="noopener noreferrer">Ravi Bangkit Nur Zikrillah</a> (@ravizikrillah)</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="https://github.com/ravizikrillah/yt-music-glass/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+        <a href="https://github.com/ravizikrillah/yt-music-glass/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a>
+      </div>
+    </div>
+    <div class="shell footer-disclaimer">
+      YT Music Glass is an independent open-source macOS project and is not affiliated with, endorsed by, or sponsored by YouTube or Google LLC.
+    </div>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
