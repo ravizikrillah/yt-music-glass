@@ -13,6 +13,7 @@ struct PlayerToolbarView: View {
     let onResetHudPosition: () -> Void
     let onOpenCommandPalette: () -> Void
     let onOpenSettings: () -> Void
+    let onOpenAbout: () -> Void
 
     var body: some View {
         ZStack {
@@ -56,6 +57,8 @@ struct PlayerToolbarView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Quick Command Palette & Song Search (⌘K)")
+
+                updateToolbarPill
 
                 Spacer(minLength: 8)
 
@@ -327,6 +330,72 @@ struct PlayerToolbarView: View {
         }
     }
 
+    @ViewBuilder
+    private var updateToolbarPill: some View {
+        switch store.updateState {
+        case .available(let release):
+            Button(action: onOpenAbout) {
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(store.palette.accentColor)
+                    Text("Update v\(release.version)")
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(.white.opacity(0.95))
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(store.palette.accentColor.opacity(0.18))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(store.palette.accentColor.opacity(0.45), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .help("YT Music Glass v\(release.version) is available — click to download & install")
+
+        case .downloading(let progress, let version):
+            Button(action: onOpenAbout) {
+                HStack(spacing: 5) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.60)
+                        .tint(store.palette.accentColor)
+                    Text("Downloading \(Int((progress * 100).rounded()))%")
+                        .font(.system(size: 10.5, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(.white.opacity(0.90))
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(store.palette.accentColor.opacity(0.16))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(store.palette.accentColor.opacity(0.38), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .help("Downloading v\(version) DMG...")
+
+        case .readyToInstall(_, let version):
+            Button(action: onOpenAbout) {
+                HStack(spacing: 5) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(store.palette.accentColor)
+                    Text("Install v\(version)")
+                        .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(.white.opacity(0.95))
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(store.palette.accentColor.opacity(0.22))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(store.palette.accentColor.opacity(0.48), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .help("v\(version) DMG is ready — click to open installer")
+
+        default:
+            EmptyView()
+        }
+    }
+
     private var obsidianPillSurface: Color {
         Color(red: 0.095, green: 0.095, blue: 0.138).opacity(0.82)
     }
@@ -535,7 +604,8 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         store: AppStore,
         onResetHudPosition: @escaping () -> Void,
         onOpenCommandPalette: @escaping () -> Void,
-        onOpenSettings: @escaping () -> Void
+        onOpenSettings: @escaping () -> Void,
+        onOpenAbout: @escaping () -> Void
     ) {
         self.store = store
 
@@ -607,7 +677,8 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
                 onReload: { [weak self] in self?.webView.reload() },
                 onResetHudPosition: onResetHudPosition,
                 onOpenCommandPalette: onOpenCommandPalette,
-                onOpenSettings: onOpenSettings
+                onOpenSettings: onOpenSettings,
+                onOpenAbout: onOpenAbout
             )
         )
         toolbarHost.safeAreaRegions = []

@@ -33,7 +33,15 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
         self.window.contentView = hosting
     }
 
-    func show() {
+    func show(checkIfNeeded: Bool = true) {
+        if checkIfNeeded {
+            switch store.updateState {
+            case .idle, .upToDate, .error:
+                store.checkForUpdates(userInitiated: true)
+            case .checking, .available, .downloading, .readyToInstall:
+                break
+            }
+        }
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

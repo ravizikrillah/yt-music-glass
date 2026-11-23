@@ -46,7 +46,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             store: store,
             onResetHudPosition: { [weak hud] in hud?.resetPosition() },
             onOpenCommandPalette: { [weak self] in self?.toggleCommandPalette() },
-            onOpenSettings: { [weak self] in self?.openSettings() }
+            onOpenSettings: { [weak self] in self?.openSettings() },
+            onOpenAbout: { [weak self] in self?.openAbout() }
         )
         self.playerController = player
 
@@ -426,11 +427,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openAbout() {
-        aboutController?.show()
+        aboutController?.show(checkIfNeeded: true)
     }
 
     @objc private func checkForUpdates() {
-        aboutController?.show()
+        aboutController?.show(checkIfNeeded: false)
         store.checkForUpdates(userInitiated: true)
     }
 

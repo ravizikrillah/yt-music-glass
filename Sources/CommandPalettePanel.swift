@@ -218,6 +218,21 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
                 }
             ),
             PaletteAction(
+                id: "toggle-fullscreen-lyrics",
+                title: store.isFullScreenLyricsVisible ? "End Full Screen Lyrics" : "Open Full Screen Lyrics",
+                subtitle: "Centered karaoke stage with dynamic album art glow",
+                icon: store.isFullScreenLyricsVisible ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
+                shortcut: "⇧⌘F",
+                keywords: "fullscreen full screen lyrics lirik centered stage karaoke",
+                perform: { [weak self] in
+                    guard let self else { return }
+                    if !self.store.isFullScreenLyricsVisible {
+                        self.onShowMainWindow()
+                    }
+                    self.store.toggleFullScreenLyrics()
+                }
+            ),
+            PaletteAction(
                 id: "toggle-hud",
                 title: store.isHudVisible ? "Hide Floating Lyrics" : "Show Floating Lyrics",
                 subtitle: "True-transparent floating karaoke overlay",

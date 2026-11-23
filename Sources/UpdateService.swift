@@ -88,15 +88,21 @@ final class UpdateService {
     private let session: URLSession
 
     init() {
-        let cfg = URLSessionConfiguration.default
+        let cfg = URLSessionConfiguration.ephemeral
         cfg.timeoutIntervalForRequest = 12
-        cfg.requestCachePolicy = .reloadIgnoringLocalCacheData
+        cfg.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        cfg.urlCache = nil
         self.session = URLSession(configuration: cfg)
     }
 
     func checkForUpdates(currentVersion: String = AppIdentity.currentVersion) async -> UpdateState {
-        var req = URLRequest(url: AppIdentity.latestReleaseAPIURL)
+        var req = URLRequest(
+            url: AppIdentity.latestReleaseAPIURL,
+            cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
+            timeoutInterval: 12
+        )
         req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        req.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         req.setValue("YTMusicGlass-macOS/\(currentVersion)", forHTTPHeaderField: "User-Agent")
 
         do {
