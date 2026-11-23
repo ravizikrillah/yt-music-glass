@@ -126,6 +126,25 @@ struct SidebarLyricsView: View {
             }
 
             Button {
+                store.enterFullScreenLyrics()
+            } label: {
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(store.isFullScreenLyricsVisible ? store.palette.accentColor : .white.opacity(0.84))
+                    .frame(width: 28, height: 28)
+                    .background(store.isFullScreenLyricsVisible ? store.palette.accentColor.opacity(0.20) : obsidianSurface)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().strokeBorder(
+                            store.isFullScreenLyricsVisible ? store.palette.accentColor.opacity(0.45) : Color.white.opacity(0.11),
+                            lineWidth: 1
+                        )
+                    )
+            }
+            .buttonStyle(.plain)
+            .help("Open Full Screen Lyrics (⇧⌘F)")
+
+            Button {
                 store.popOutToFloating()
             } label: {
                 HStack(spacing: 4) {

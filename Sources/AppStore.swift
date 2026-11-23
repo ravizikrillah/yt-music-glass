@@ -174,6 +174,19 @@ final class AppStore: ObservableObject {
         }
     }
 
+    @Published var isFullScreenLyricsVisible: Bool = false {
+        didSet {
+            onFullScreenLyricsVisibilityChanged?(isFullScreenLyricsVisible)
+            updateTimerState()
+        }
+    }
+
+    @Published var isFullScreenLyricsStagePresented: Bool = false
+    @Published var isNativeWindowFullScreen: Bool = false
+    @Published var fullScreenControlsVisible: Bool = true
+    @Published var isHoveringFullScreenControls: Bool = false
+    private var fullScreenIdleTask: Task<Void, Never>? = nil
+
     @Published var isHovering: Bool = false
 
     // Lyrics Picker UI state (kept on ObservableObject to avoid Swift macro plugin requirements)
@@ -187,6 +200,8 @@ final class AppStore: ObservableObject {
     var onHudVisibilityChanged: ((Bool) -> Void)?
     var onMiniPlayerVisibilityChanged: ((Bool) -> Void)?
     var onSidebarVisibilityChanged: ((Bool) -> Void)?
+    var onFullScreenLyricsVisibilityChanged: ((Bool) -> Void)?
+    var onToggleNativeWindowFullScreen: (() -> Void)?
     var onPlayerCommand: ((String, Double?) -> Void)?
     var onSwitchSite: ((WebSiteMode) -> Void)?
     var onSyncSidebarButtonState: ((Bool) -> Void)?
@@ -311,6 +326,70 @@ final class AppStore: ObservableObject {
 
     func toggleSidebar() {
         isSidebarVisible.toggle()
+    }
+
+    func toggleFullScreenLyrics() {
+        if isFullScreenLyricsVisible {
+            exitFullScreenLyrics()
+        } else {
+            enterFullScreenLyrics()
+        }
+    }
+
+    func enterFullScreenLyrics() {
+        guard !isFullScreenLyricsVisible else { return }
+        fullScreenControlsVisible = true
+        isFullScreenLyricsVisible = true
+        scheduleFullScreenControlsAutoHide()
+    }
+
+    func exitFullScreenLyrics() {
+        fullScreenIdleTask?.cancel()
+        fullScreenIdleTask = nil
+        if isPickerOpen {
+            closePicker()
+        }
+        guard isFullScreenLyricsVisible else { return }
+        isFullScreenLyricsVisible = false
+    }
+
+    func toggleNativeWindowFullScreen() {
+        onToggleNativeWindowFullScreen?()
+    }
+
+    func notifyFullScreenUserActivity() {
+        if !fullScreenControlsVisible {
+            fullScreenControlsVisible = true
+        }
+        scheduleFullScreenControlsAutoHide()
+    }
+
+    func setFullScreenControlsHovering(_ hovering: Bool) {
+        isHoveringFullScreenControls = hovering
+        if hovering {
+            fullScreenControlsVisible = true
+            fullScreenIdleTask?.cancel()
+        } else {
+            scheduleFullScreenControlsAutoHide()
+        }
+    }
+
+    func scheduleFullScreenControlsAutoHide() {
+        fullScreenIdleTask?.cancel()
+        guard isFullScreenLyricsVisible, !playback.paused, !isPickerOpen, !isHoveringFullScreenControls else {
+            fullScreenControlsVisible = true
+            return
+        }
+        fullScreenIdleTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 3_200_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard let self else { return }
+                if self.isFullScreenLyricsVisible && !self.isHoveringFullScreenControls && !self.isPickerOpen && !self.playback.paused {
+                    self.fullScreenControlsVisible = false
+                }
+            }
+        }
     }
 
     func popOutToFloating() {
@@ -1137,13 +1216,14 @@ final class AppStore: ObservableObject {
         let needsLiveTick =
             isHudVisible ||
             isSidebarVisible ||
+            isFullScreenLyricsVisible ||
             isMiniPlayerVisible ||
             menuBarLyricsEnabled
 
         let shouldTick =
             needsLiveTick &&
             !playback.paused &&
-            (status == .synced || isMiniPlayerVisible || (audioVisualizerEnabled && (isSidebarVisible || isHudVisible)))
+            (status == .synced || isMiniPlayerVisible || isFullScreenLyricsVisible || (audioVisualizerEnabled && (isSidebarVisible || isHudVisible)))
 
         syncNowPlaying()
 

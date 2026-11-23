@@ -101,6 +101,7 @@ swiftc \
   "${ROOT_DIR}/Sources/CommandPalettePanel.swift" \
   "${ROOT_DIR}/Sources/HudContentView.swift" \
   "${ROOT_DIR}/Sources/SidebarLyricsView.swift" \
+  "${ROOT_DIR}/Sources/FullScreenLyricsView.swift" \
   "${ROOT_DIR}/Sources/PlayerWindowController.swift" \
   "${ROOT_DIR}/Sources/AppDelegate.swift" \
   -o "${BINARY_PATH}"

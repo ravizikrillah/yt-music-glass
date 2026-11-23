@@ -120,6 +120,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         toggleSidebarItem.target = self
         viewMenu.addItem(toggleSidebarItem)
 
+        let toggleFullScreenItem = NSMenuItem(title: "Toggle Full Screen Lyrics", action: #selector(toggleFullScreenLyrics), keyEquivalent: "F")
+        toggleFullScreenItem.keyEquivalentModifierMask = [.command, .shift]
+        toggleFullScreenItem.target = self
+        viewMenu.addItem(toggleFullScreenItem)
+
         let toggleHudItem = NSMenuItem(title: "Toggle Floating Lyrics", action: #selector(toggleHud), keyEquivalent: "L")
         toggleHudItem.keyEquivalentModifierMask = [.command, .shift]
         toggleHudItem.target = self
@@ -439,6 +444,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func toggleSidebar() {
         store.toggleSidebar()
+    }
+
+    @objc private func toggleFullScreenLyrics() {
+        if !store.isFullScreenLyricsVisible {
+            playerController?.show()
+        }
+        store.toggleFullScreenLyrics()
     }
 
     @objc private func toggleHud() {

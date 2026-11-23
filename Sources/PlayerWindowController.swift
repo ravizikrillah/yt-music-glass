@@ -518,10 +518,14 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
     let webView: WKWebView
     private let store: AppStore
     private let sidebarHost: NSHostingView<SidebarLyricsView>
+    private let fullScreenHost: NSHostingView<FullScreenLyricsView>
     private let resizeHandle = SidebarResizeHandleView(frame: .zero)
     private var sidebarWidthConstraint: NSLayoutConstraint!
     private var dragStartSidebarWidth: CGFloat = 380
     private var popupWindows: [ObjectIdentifier: NSWindow] = [:]
+    private var fullScreenEventMonitor: Any? = nil
+    private var enteredNativeFullScreenFromLyrics: Bool = false
+    private var fullScreenHideGeneration: Int = 0
 
     private static let defaultSidebarWidth: CGFloat = 380
     private static let minSidebarWidth: CGFloat = 260
@@ -564,6 +568,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         self.webView.setValue(false, forKey: "drawsBackground")
 
         self.sidebarHost = NSHostingView(rootView: SidebarLyricsView(store: store))
+        self.fullScreenHost = NSHostingView(rootView: FullScreenLyricsView(store: store))
 
         // Unified native macOS frameless-feel window (traffic lights integrated into our glass header)
         let rect = NSRect(x: 0, y: 0, width: 1280, height: 800)
@@ -576,6 +581,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         self.window.title = "YT Music Glass"
         self.window.titleVisibility = .hidden
         self.window.titlebarAppearsTransparent = true
+        self.window.collectionBehavior.insert(.fullScreenPrimary)
         self.window.isMovableByWindowBackground = false
         self.window.appearance = NSAppearance(named: .darkAqua)
         self.window.backgroundColor = NSColor(red: 0.012, green: 0.012, blue: 0.012, alpha: 1.0)
@@ -619,10 +625,19 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
 
         resizeHandle.translatesAutoresizingMaskIntoConstraints = false
 
+        fullScreenHost.safeAreaRegions = []
+        fullScreenHost.sizingOptions = []
+        fullScreenHost.translatesAutoresizingMaskIntoConstraints = false
+        fullScreenHost.wantsLayer = true
+        fullScreenHost.layer?.zPosition = 2000
+        fullScreenHost.alphaValue = 0.0
+        fullScreenHost.isHidden = true
+
         container.addSubview(toolbarHost)
         container.addSubview(webView)
         container.addSubview(sidebarHost)
         container.addSubview(resizeHandle)
+        container.addSubview(fullScreenHost)
 
         let clampedInitial = clampSidebarWidth(store.sidebarWidth)
         let initialWidth: CGFloat = store.isSidebarVisible ? clampedInitial : 0
@@ -650,6 +665,11 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
             resizeHandle.bottomAnchor.constraint(equalTo: container.bottomAnchor),
             resizeHandle.centerXAnchor.constraint(equalTo: sidebarHost.leadingAnchor),
             resizeHandle.widthAnchor.constraint(equalToConstant: 14),
+
+            fullScreenHost.topAnchor.constraint(equalTo: container.topAnchor),
+            fullScreenHost.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            fullScreenHost.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            fullScreenHost.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
 
         resizeHandle.onDragStart = { [weak self] in
@@ -690,6 +710,12 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         store.onSidebarVisibilityChanged = { [weak self] visible in
             self?.setSidebarVisible(visible, animated: true)
         }
+        store.onFullScreenLyricsVisibilityChanged = { [weak self] visible in
+            self?.setFullScreenLyricsVisible(visible, animated: true)
+        }
+        store.onToggleNativeWindowFullScreen = { [weak self] in
+            self?.toggleNativeWindowFullScreenFromLyrics()
+        }
         store.onSyncSidebarButtonState = { [weak self] visible in
             self?.syncInPageSidebarButton(visible)
         }
@@ -709,6 +735,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
             self?.load(url: url)
         }
 
+        installFullScreenEventMonitor()
         load(url: store.siteMode.homeURL)
     }
 
@@ -722,7 +749,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         let targetWidth: CGFloat = visible ? clampSidebarWidth(store.sidebarWidth) : 0
         if visible {
             sidebarHost.isHidden = false
-            resizeHandle.isHidden = false
+            resizeHandle.isHidden = store.isFullScreenLyricsVisible
         } else {
             resizeHandle.isHidden = true
         }
@@ -751,6 +778,105 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         let clamped = clampSidebarWidth(sidebarWidthConstraint.constant)
         if abs(clamped - sidebarWidthConstraint.constant) > 0.5 {
             sidebarWidthConstraint.constant = clamped
+        }
+    }
+
+    func windowDidEnterFullScreen(_ notification: Notification) {
+        store.isNativeWindowFullScreen = true
+    }
+
+    func windowDidExitFullScreen(_ notification: Notification) {
+        store.isNativeWindowFullScreen = false
+        enteredNativeFullScreenFromLyrics = false
+    }
+
+    private func toggleNativeWindowFullScreenFromLyrics() {
+        let isCurrentlyFull = window.styleMask.contains(.fullScreen)
+        if !isCurrentlyFull {
+            enteredNativeFullScreenFromLyrics = true
+        } else {
+            enteredNativeFullScreenFromLyrics = false
+        }
+        window.toggleFullScreen(nil)
+    }
+
+    private func setFullScreenLyricsVisible(_ visible: Bool, animated: Bool) {
+        fullScreenHideGeneration &+= 1
+        let currentGen = fullScreenHideGeneration
+
+        if visible {
+            resizeHandle.isHidden = true
+            fullScreenHost.isHidden = false
+            if animated {
+                store.isFullScreenLyricsStagePresented = false
+                NSAnimationContext.runAnimationGroup { ctx in
+                    ctx.duration = 0.34
+                    ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    fullScreenHost.animator().alphaValue = 1.0
+                }
+                DispatchQueue.main.async { [weak self] in
+                    self?.store.isFullScreenLyricsStagePresented = true
+                }
+            } else {
+                fullScreenHost.alphaValue = 1.0
+                store.isFullScreenLyricsStagePresented = true
+            }
+        } else {
+            // Smooth exit from Full Screen -> End Full Screen
+            store.isFullScreenLyricsStagePresented = false
+
+            if enteredNativeFullScreenFromLyrics && window.styleMask.contains(.fullScreen) {
+                enteredNativeFullScreenFromLyrics = false
+                window.toggleFullScreen(nil)
+            }
+
+            if animated {
+                NSAnimationContext.runAnimationGroup({ ctx in
+                    ctx.duration = 0.28
+                    ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    fullScreenHost.animator().alphaValue = 0.0
+                }, completionHandler: { [weak self] in
+                    Task { @MainActor in
+                        guard let self, self.fullScreenHideGeneration == currentGen, !self.store.isFullScreenLyricsVisible else {
+                            return
+                        }
+                        self.fullScreenHost.isHidden = true
+                        self.resizeHandle.isHidden = !self.store.isSidebarVisible
+                    }
+                })
+            } else {
+                fullScreenHost.alphaValue = 0.0
+                fullScreenHost.isHidden = true
+                resizeHandle.isHidden = !store.isSidebarVisible
+            }
+        }
+    }
+
+    private func installFullScreenEventMonitor() {
+        fullScreenEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]) { [weak self] event in
+            guard let self else { return event }
+            guard self.store.isFullScreenLyricsVisible else { return event }
+
+            switch event.type {
+            case .mouseMoved, .leftMouseDown, .scrollWheel:
+                if event.window == self.window {
+                    self.store.notifyFullScreenUserActivity()
+                }
+                return event
+            case .keyDown:
+                // Escape key (keyCode 53) smoothly closes Picker first, then exits Full Screen Lyrics
+                if event.keyCode == 53 {
+                    if self.store.isPickerOpen {
+                        self.store.closePicker()
+                    } else {
+                        self.store.exitFullScreenLyrics()
+                    }
+                    return nil
+                }
+                return event
+            default:
+                return event
+            }
         }
     }
 
