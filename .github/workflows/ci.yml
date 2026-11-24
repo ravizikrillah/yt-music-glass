@@ -1,0 +1,49 @@
+name: CI Verification Matrix
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  shared-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify shared web bridge & test vectors
+        run: node packages/shared/scripts/verify-shared.mjs
+
+  macos-dual-arch:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Swift core unit tests
+        run: make test
+      - name: Compile macOS arm64 & x86_64 (macOS 13.0+)
+        run: make build-all
+
+  desktop-tauri:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux WebKitGTK & tray dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Build Tauri frontend
+        working-directory: apps/desktop
+        run: npm install && npm run build
+      - name: Run Rust core tests
+        working-directory: apps/desktop/src-tauri
+        run: cargo test

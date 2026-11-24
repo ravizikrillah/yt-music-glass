@@ -1650,6 +1650,80 @@ kbd {
   font-weight: 600;
 }
 
+/* INSTALL & ALL PLATFORMS MATRIX */
+.detected-hint {
+  margin: -10px 0 18px;
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+}
+
+.platform-matrix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.platform-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.platform-card h3 {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 700;
+}
+
+.platform-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.platform-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.plat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-strong);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.plat-btn:hover {
+  background: rgba(var(--accent-rgb), 0.22);
+  border-color: rgba(var(--accent-rgb), 0.6);
+}
+
+.plat-size {
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+@media (max-width: 960px) {
+  .platform-matrix {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* INSTALL */
 .install-grid {
   display: grid;

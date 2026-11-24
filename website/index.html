@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YT Music Glass: Native YouTube Music Client for macOS (Free DMG)</title>
-  <meta name="description" content="Download YT Music Glass (.dmg), a fast 2.9 MB native Swift YouTube Music desktop app for macOS with zero Electron, synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and Offline Lyrics Vault.">
-  <meta name="keywords" content="YouTube Music macOS, YouTube Music Mac DMG, YouTube Music desktop client MacBook, native Swift YouTube Music, YouTube Music lyrics macOS, Romaji karaoke lyrics Mac, Apple Silicon YouTube Music">
+  <title>YT Music Glass: Lightweight YouTube Music Client for macOS, Windows &amp; Linux</title>
+  <meta name="description" content="Download YT Music Glass for macOS (Apple Silicon &amp; Intel), Windows, and Linux. Zero Electron bloat, Obsidian Liquid Glass UI, 60fps synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Floating HUD, and Offline Vault.">
+  <meta name="keywords" content="YouTube Music macOS Intel Apple Silicon, YouTube Music Windows Linux Tauri, Romaji karaoke lyrics desktop, YT Music Glass">
   <meta name="author" content="Ravi Bangkit Nur Zikrillah">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#050507">
@@ -43,9 +43,9 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "YT Music Glass",
-    "operatingSystem": "macOS 14.0 or later (Apple Silicon)",
+    "operatingSystem": "macOS 13.0+ (Apple Silicon & Intel), Windows 10/11, Linux",
     "applicationCategory": "MultimediaApplication",
-    "softwareVersion": "1.0.0",
+    "softwareVersion": "1.2.0",
     "fileSize": "2.9MB",
     "url": "https://yt-music-glass.vercel.app/",
     "downloadUrl": "https://github.com/ravizikrillah/yt-music-glass/releases/latest",
@@ -149,14 +149,14 @@
       <div class="hero-copy">
         <div class="version-line" id="release-status-bar" data-release-state="loading" aria-live="polite">
           <span class="pulse-dot" aria-hidden="true"></span>
-          <span id="release-meta">Checking GitHub Releases... · v1.0.0 · macOS 14+ · 2.9 MB DMG</span>
+          <span id="release-meta">Checking GitHub Releases... · macOS 13+ (Silicon &amp; Intel) · Windows · Linux</span>
           <button type="button" class="retry-release-btn" id="retry-release-btn" hidden>Retry</button>
         </div>
 
-        <h1>YouTube Music for Mac, built in native Swift.</h1>
+        <h1>YouTube Music for Every Desktop.</h1>
 
         <p class="lead">
-          No Electron bloat, no browser tabs. YT Music Glass runs YouTube Music inside a 2.9 MB native AppKit and WKWebView macOS client with 60fps synced karaoke lyrics, offline Auto-Romaji, Smart Translate, Mini Player, Menu Bar lyrics, and an Offline Vault.
+          No Electron bloat, no browser tabs. YT Music Glass pairs a ~3.5 MB pure Swift app for Apple Silicon &amp; Intel Macs with a lightweight Tauri v2 desktop client for Windows &amp; Linux—complete with 60fps karaoke lyrics, Auto-Romaji, Smart Translate, and an Offline Vault.
         </p>
 
         <div class="hero-actions">
@@ -166,16 +166,14 @@
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span id="download-btn-label">Download v1.0.0 (.dmg)</span>
+            <span id="download-btn-label">Download Latest Release</span>
           </a>
 
-          <a class="btn-secondary" href="https://github.com/ravizikrillah/yt-music-glass" target="_blank" rel="noopener noreferrer">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.69-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a10.95 10.95 0 0 1 5.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.24 2.75.12 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.79.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
-            </svg>
-            <span>Inspect Swift Source</span>
+          <a class="btn-secondary" href="#install">
+            <span>All Desktop Platforms (Mac, Win, Linux)</span>
           </a>
         </div>
+        <p class="detected-hint" id="detected-platform-hint">Detecting your OS &amp; architecture automatically...</p>
 
         <!-- Interactive Track & Adaptive Theme Selector -->
         <div class="live-deck-controls" aria-label="Interactive live demo track switcher">
@@ -666,24 +664,65 @@
       </article>
     </section>
 
-    <!-- INSTALL GUIDE -->
+    <!-- INSTALL GUIDE & ALL PLATFORMS -->
     <section id="install" class="install shell reveal-on-scroll">
       <div class="section-head">
-        <h2>Install in 30 seconds</h2>
-        <p>Download the standalone macOS DMG or compile directly from source with Xcode Command Line Tools.</p>
+        <h2>Download for All Desktop Platforms</h2>
+        <p>Dedicated pure Swift builds for Apple Silicon &amp; Intel Macs and lightweight Tauri v2 builds for Windows &amp; Linux.</p>
+      </div>
+
+      <div class="platform-matrix">
+        <article class="platform-card">
+          <h3>macOS (Pure Swift · 13.0+)</h3>
+          <p>Separate native DMGs for Apple Silicon (M1–M4) and Intel Macs with Menu Bar live lyrics, click-through HUD, and native MediaPlayer.</p>
+          <div class="platform-links">
+            <a class="plat-btn" data-asset-key="mac-arm64" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>Apple Silicon (.dmg)</span>
+              <span class="plat-size">arm64</span>
+            </a>
+            <a class="plat-btn" data-asset-key="mac-x86_64" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>Mac Intel (.dmg)</span>
+              <span class="plat-size">x86_64</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="platform-card">
+          <h3>Windows (Tauri v2 · x64)</h3>
+          <p>Lightweight Rust + WebView2 desktop app featuring click-through Floating HUD, Screen-Edge Mini Lyric Pill, and System Tray controls.</p>
+          <div class="platform-links">
+            <a class="plat-btn" data-asset-key="windows-exe" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>Installer (.exe)</span>
+              <span class="plat-size">NSIS</span>
+            </a>
+            <a class="plat-btn" data-asset-key="windows-zip" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>Portable (.zip)</span>
+              <span class="plat-size">x64</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="platform-card">
+          <h3>Linux (Tauri v2 · x86_64)</h3>
+          <p>Lightweight Rust + WebKitGTK app with Floating HUD, Mini Player, Screen-Edge Mini Lyric Pill, and System Tray controls.</p>
+          <div class="platform-links">
+            <a class="plat-btn" data-asset-key="linux-appimage" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>AppImage</span>
+              <span class="plat-size">x86_64</span>
+            </a>
+            <a class="plat-btn" data-asset-key="linux-deb" href="https://github.com/ravizikrillah/yt-music-glass/releases/latest">
+              <span>Debian/Ubuntu (.deb)</span>
+              <span class="plat-size">amd64</span>
+            </a>
+          </div>
+        </article>
       </div>
 
       <div class="install-grid">
         <div class="install-step">
           <span class="step-index mono">01</span>
-          <h3>Download &amp; Drag to Applications</h3>
-          <p>Download the latest <code>YT-Music-Glass-macOS-arm64.dmg</code>, open it, and drag <strong>YT Music Glass.app</strong> into your <strong>Applications</strong> folder.</p>
-        </div>
-
-        <div class="install-step">
-          <span class="step-index mono">02</span>
-          <h3>First-Launch macOS Gatekeeper</h3>
-          <p>Since this is a free open-source release without a paid Apple Developer ID, right-click the app and choose <strong>Open</strong>, or clear quarantine once in Terminal:</p>
+          <h3>macOS First-Launch Gatekeeper</h3>
+          <p>On Apple Silicon or Intel Macs, open the <code>.dmg</code>, drag to Applications, and clear quarantine once if needed:</p>
           <div class="code-box">
             <code id="cmd-xattr">xattr -cr "/Applications/YT Music Glass.app"</code>
             <button type="button" class="copy-btn" data-copy="cmd-xattr">Copy</button>
@@ -691,11 +730,17 @@
         </div>
 
         <div class="install-step">
+          <span class="step-index mono">02</span>
+          <h3>Windows &amp; Linux Quick Start</h3>
+          <p>Run the Windows NSIS installer (or extract the portable <code>.zip</code>). On Linux, mark the <code>.AppImage</code> executable or install the <code>.deb</code> package.</p>
+        </div>
+
+        <div class="install-step">
           <span class="step-index mono">03</span>
-          <h3>Or Build Directly From Source</h3>
-          <p>Zero Node.js or CocoaPods required. Compile on macOS 14+ with Apple Command Line Tools:</p>
+          <h3>Or Build macOS From Source</h3>
+          <p>Compile both Apple Silicon and Intel DMGs on macOS 13+ with Apple Command Line Tools:</p>
           <div class="code-box">
-            <code id="cmd-build">git clone https://github.com/ravizikrillah/yt-music-glass.git &amp;&amp; cd yt-music-glass &amp;&amp; make install</code>
+            <code id="cmd-build">git clone https://github.com/ravizikrillah/yt-music-glass.git &amp;&amp; cd yt-music-glass &amp;&amp; make dmg-all</code>
             <button type="button" class="copy-btn" data-copy="cmd-build">Copy</button>
           </div>
         </div>

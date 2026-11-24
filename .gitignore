@@ -1,6 +1,11 @@
 dist-macos/
+dist-windows/
+dist-linux/
 .build/
 __pycache__/
 .DS_Store
 *.log
 .vercel/
+apps/desktop/node_modules/
+apps/desktop/dist/
+apps/desktop/src-tauri/target/

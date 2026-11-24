@@ -1,4 +1,4 @@
-name: Build & Release macOS DMG
+name: Build & Release All Desktop Platforms
 
 on:
   push:
@@ -10,27 +10,103 @@ permissions:
   contents: write
 
 jobs:
-  build-macos-dmg:
+  build-macos-arm64:
     runs-on: macos-15
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set bundle version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          TAG_VER="${GITHUB_REF_NAME#v}"
-          sed -i '' "s|<string>1.0.0</string>|<string>${TAG_VER}</string>|g" scripts/build.sh
-
-      - name: Run Swift unit tests
+      - uses: actions/checkout@v4
+      - name: Run Swift tests
         run: make test
+      - name: Build Apple Silicon DMG (macOS 13.0+)
+        env:
+          YTMG_VERSION: ${{ github.ref_name }}
+        run: |
+          YTMG_VERSION="${GITHUB_REF_NAME#v}" make dmg-arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: dist-macos/YT-Music-Glass-macOS-arm64.dmg
 
-      - name: Build YT Music Glass DMG (Apple Silicon)
-        run: make dmg
+  build-macos-x86_64:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Intel DMG (macOS 13.0+)
+        run: |
+          YTMG_VERSION="${GITHUB_REF_NAME#v}" make dmg-x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-x86_64
+          path: dist-macos/YT-Music-Glass-macOS-x86_64.dmg
 
+  build-desktop-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install & test desktop core
+        working-directory: apps/desktop
+        run: |
+          npm install
+          cargo test --manifest-path src-tauri/Cargo.toml
+          npm run tauri build -- --bundles nsis
+      - name: Package Windows NSIS & Portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist-windows | Out-Null
+          $exe = Get-ChildItem apps/desktop/src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          Copy-Item $exe.FullName dist-windows/YT-Music-Glass-Windows-x64-Setup.exe
+          Compress-Archive -Path apps/desktop/src-tauri/target/release/yt-music-glass-desktop.exe -DestinationPath dist-windows/YT-Music-Glass-Windows-x64-Portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: dist-windows/*
+
+  build-desktop-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux WebKitGTK & bundling dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf fuse libfuse2
+      - name: Build AppImage & deb
+        working-directory: apps/desktop
+        run: |
+          npm install
+          cargo test --manifest-path src-tauri/Cargo.toml
+          npm run tauri build -- --bundles appimage,deb
+      - name: Collect Linux artifacts
+        run: |
+          mkdir -p dist-linux
+          cp apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage dist-linux/YT-Music-Glass-Linux-x86_64.AppImage
+          cp apps/desktop/src-tauri/target/release/bundle/deb/*.deb dist-linux/YT-Music-Glass-Linux-amd64.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: dist-linux/*
+
+  publish-release:
+    needs:
+      - build-macos-arm64
+      - build-macos-x86_64
+      - build-desktop-windows
+      - build-desktop-linux
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: dist-macos/YT-Music-Glass-macOS-*.dmg
+          files: release-assets/*

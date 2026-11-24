@@ -1,0 +1,52 @@
+{
+  "metadata": [
+    {
+      "rawTitle": "NOAH - Separuh Aku (Official Music Video)",
+      "rawArtist": "Musica Studios",
+      "expectedArtist": "NOAH",
+      "expectedTitle": "Separuh Aku"
+    },
+    {
+      "rawTitle": "Bohemian Rhapsody - Queen (Official Video)",
+      "rawArtist": "Queen Official",
+      "expectedArtist": "Queen",
+      "expectedTitle": "Bohemian Rhapsody"
+    },
+    {
+      "rawTitle": "Hati-Hati di Jalan (Lirik Lagu)",
+      "rawArtist": "Tulus - Topic",
+      "expectedArtist": "Tulus",
+      "expectedTitle": "Hati-Hati di Jalan"
+    }
+  ],
+  "lrcSample": {
+    "text": "[offset:500]\n[00:05.50] <00:05.50>Hello <00:06.10>karaoke <00:06.90>world\n[00:10.50][00:30.50] Chorus line\n[00:15.50]\n[00:22.50] After bridge",
+    "duration": 120,
+    "expectedMode": "synced",
+    "expectedHasWordSync": true,
+    "expectedLineCount": 5,
+    "expectedFirstStart": 5.0,
+    "expectedFirstWordCount": 3
+  },
+  "koreanRomanization": [
+    {
+      "input": "But you DM me, \"니가 궁금해서\"",
+      "expected": "But you DM me, \"niga gunggeumhaeseo\""
+    },
+    {
+      "input": "널 부를래, baby",
+      "expected": "neol bureullae, baby"
+    },
+    {
+      "input": "Like unbothered, don't fade",
+      "expected": null
+    }
+  ],
+  "semver": [
+    { "remote": "v1.0.1", "current": "1.0.0", "expected": true },
+    { "remote": "1.2.0", "current": "1.1.9", "expected": true },
+    { "remote": "v1.0.10", "current": "1.0.2", "expected": true },
+    { "remote": "v1.0.0", "current": "1.0.0", "expected": false },
+    { "remote": "0.9.9", "current": "1.0.0", "expected": false }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions for YT Music Glass companion surfaces",
+  "windows": ["hud", "mini-player", "lyric-pill", "sidebar", "command-palette", "settings", "about", "tapsync"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-ignore-cursor-events",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "shell:allow-open"
+  ]
+}

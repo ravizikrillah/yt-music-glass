@@ -6,14 +6,71 @@
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // 1. Live fetch latest macOS DMG link, version & file size with explicit loading / ready / fallback states (R-27)
+  // 1. Live fetch latest multi-platform release assets + auto-detect visitor OS/arch
   const releaseBar = document.getElementById('release-status-bar');
   const metaEl = document.getElementById('release-meta');
   const retryBtn = document.getElementById('retry-release-btn');
+  const btnLabel = document.getElementById('download-btn-label');
+  const navCta = document.querySelector('.nav-cta');
+  const detectedHintEl = document.getElementById('detected-platform-hint');
+
+  async function detectVisitorPlatform() {
+    const ua = navigator.userAgent || '';
+    const plat = navigator.platform || '';
+
+    if (/Win/i.test(plat) || /Windows/i.test(ua)) {
+      return { key: 'windows-exe', label: 'Windows (.exe)', shortLabel: 'Download Windows .exe' };
+    }
+    if (/Linux/i.test(plat) || (/Linux/i.test(ua) && !/Android/i.test(ua))) {
+      return { key: 'linux-appimage', label: 'Linux (.AppImage)', shortLabel: 'Download AppImage' };
+    }
+
+    // macOS: distinguish Apple Silicon vs Intel where browser exposes it
+    let isArm = false;
+    try {
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        const vals = await navigator.userAgentData.getHighEntropyValues(['architecture']);
+        if (vals.architecture === 'arm') isArm = true;
+      }
+    } catch {}
+    if (!isArm) {
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+          const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+          const renderer = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '';
+          if (/Apple\s*M\d|Apple GPU/i.test(String(renderer))) isArm = true;
+        }
+      } catch {}
+    }
+    if (/arm64|aarch64/i.test(ua)) isArm = true;
+
+    if (isArm) {
+      return { key: 'mac-arm64', label: 'macOS Apple Silicon (.dmg)', shortLabel: 'Download DMG' };
+    }
+    if (/Mac/i.test(plat) || /Macintosh/i.test(ua)) {
+      return { key: 'mac-x86_64', label: 'macOS Intel (.dmg)', shortLabel: 'Download Intel DMG' };
+    }
+    return { key: 'mac-arm64', label: 'macOS Apple Silicon (.dmg)', shortLabel: 'Download' };
+  }
+
+  function mapReleaseAssets(assets) {
+    const find = (re) => assets.find((a) => re.test(a.name || ''));
+    return {
+      'mac-arm64': find(/arm64.*\.dmg$/i),
+      'mac-x86_64': find(/(x86_64|intel).*\.dmg$/i),
+      'windows-exe': find(/windows.*\.exe$|setup\.exe$/i) || find(/\.exe$/i),
+      'windows-zip': find(/windows.*\.zip$/i),
+      'linux-appimage': find(/\.AppImage$/i),
+      'linux-deb': find(/\.deb$/i),
+    };
+  }
 
   async function syncLatestRelease() {
     if (releaseBar) releaseBar.setAttribute('data-release-state', 'loading');
     if (retryBtn) retryBtn.hidden = true;
+    const detected = await detectVisitorPlatform();
 
     try {
       const res = await fetch(RELEASES_API, {
@@ -21,32 +78,46 @@
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const tag = data.tag_name || 'v1.0.0';
+      const tag = data.tag_name || 'v1.2.0';
       const assets = Array.isArray(data.assets) ? data.assets : [];
-      const dmg =
-        assets.find((a) => /arm64.*\.dmg$/i.test(a.name || '')) ||
-        assets.find((a) => /\.dmg$/i.test(a.name || ''));
+      const mapped = mapReleaseAssets(assets);
+      const primaryAsset = mapped[detected.key] || mapped['mac-arm64'] || assets[0];
 
-      const downloadUrl = (dmg && dmg.browser_download_url) || data.html_url || FALLBACK_URL;
+      const primaryUrl = (primaryAsset && primaryAsset.browser_download_url) || data.html_url || FALLBACK_URL;
       document.querySelectorAll('[data-download-link]').forEach((el) => {
-        el.setAttribute('href', downloadUrl);
+        el.setAttribute('href', primaryUrl);
+      });
+
+      document.querySelectorAll('[data-asset-key]').forEach((el) => {
+        const key = el.getAttribute('data-asset-key');
+        const asset = key ? mapped[key] : null;
+        if (asset && asset.browser_download_url) {
+          el.setAttribute('href', asset.browser_download_url);
+          const sizeBadge = el.querySelector('.plat-size');
+          if (sizeBadge && asset.size) {
+            sizeBadge.textContent = `${(asset.size / 1048576).toFixed(1)} MB`;
+          }
+        } else {
+          el.setAttribute('href', data.html_url || FALLBACK_URL);
+        }
       });
 
       if (metaEl) {
-        const sizeMb = dmg && dmg.size ? `${(dmg.size / 1048576).toFixed(1)} MB DMG` : '2.9 MB DMG';
-        metaEl.textContent = `${tag} verified on GitHub Releases · macOS 14+ · ${sizeMb}`;
+        const sizeMb = primaryAsset && primaryAsset.size ? `${(primaryAsset.size / 1048576).toFixed(1)} MB` : 'macOS · Windows · Linux';
+        metaEl.textContent = `${tag} verified on GitHub Releases · ${detected.label} · ${sizeMb}`;
       }
       if (releaseBar) releaseBar.setAttribute('data-release-state', 'ready');
-
-      const btnLabel = document.getElementById('download-btn-label');
-      if (btnLabel) {
-        btnLabel.textContent = `Download ${tag} (.dmg)`;
+      if (btnLabel) btnLabel.textContent = `Download ${tag} · ${detected.label}`;
+      if (navCta) navCta.textContent = detected.shortLabel;
+      if (detectedHintEl) {
+        detectedHintEl.textContent = `Auto-detected ${detected.label}. On another desktop? Pick any OS below.`;
       }
     } catch {
       if (releaseBar) releaseBar.setAttribute('data-release-state', 'fallback');
       if (metaEl) {
-        metaEl.textContent = 'v1.0.0 for macOS 14+ · Apple Silicon · 2.9 MB DMG (GitHub Releases)';
+        metaEl.textContent = `Latest Release · macOS 13+ (Silicon & Intel) · Windows · Linux`;
       }
+      if (btnLabel) btnLabel.textContent = `Download · ${detected.label}`;
       if (retryBtn) retryBtn.hidden = false;
     }
   }

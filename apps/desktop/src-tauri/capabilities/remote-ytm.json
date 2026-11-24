@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "remote-ytm",
+  "description": "Allow shared bridge.js inside main YouTube Music window to emit playback and offline discovery events",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://music.youtube.com/*",
+      "https://www.youtube.com/*"
+    ]
+  },
+  "permissions": [
+    "core:default"
+  ]
+}
