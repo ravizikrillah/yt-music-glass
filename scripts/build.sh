@@ -116,7 +116,7 @@ cat > "${CONTENTS_DIR}/Info.plist" <<'PLIST'
   <key>CFBundleDisplayName</key>
   <string>YT Music Glass</string>
   <key>CFBundleIdentifier</key>
-  <string>com.ytmkaraokefloat.app</string>
+  <string>com.ytmusicglass.app</string>
   <key>CFBundleVersion</key>
   <string>1</string>
   <key>CFBundleShortVersionString</key>

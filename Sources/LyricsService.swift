@@ -41,17 +41,14 @@ final class LyricsService {
         config.timeoutIntervalForRequest = 10
         config.httpAdditionalHeaders = [
             "Accept": "application/json",
-            "Lrclib-Client": "YT Music Glass macOS v1.0.0",
+            "Lrclib-Client": "YT Music Glass macOS v\(AppIdentity.currentVersion)",
         ]
         self.session = URLSession(configuration: config)
 
         if let customURL = storeURL {
             self.storeURL = customURL
         } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-                ?? FileManager.default.temporaryDirectory
-            let dir = appSupport.appendingPathComponent("YTMKaraoke", isDirectory: true)
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let dir = AppIdentity.appSupportDirectory()
             self.storeURL = dir.appendingPathComponent("lyrics-store.json")
         }
 

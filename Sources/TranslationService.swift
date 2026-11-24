@@ -101,10 +101,7 @@ final class TranslationService {
         if let customURL = cacheURL {
             self.cacheURL = customURL
         } else {
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-                ?? FileManager.default.temporaryDirectory
-            let dir = appSupport.appendingPathComponent("YTMKaraoke", isDirectory: true)
-            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let dir = AppIdentity.appSupportDirectory()
             self.cacheURL = dir.appendingPathComponent("translations-cache.json")
         }
 

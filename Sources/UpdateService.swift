@@ -2,6 +2,10 @@ import Foundation
 
 enum AppIdentity {
     static let appName = "YT Music Glass"
+    static let bundleIdentifier = "com.ytmusicglass.app"
+    static let legacyBundleIdentifier = "com.ytmkaraokefloat.app"
+    static let appSupportFolderName = "YTMusicGlass"
+    static let legacyAppSupportFolderName = "YTMKaraoke"
     static let developerName = "Ravi Bangkit Nur Zikrillah"
     static let githubOwner = "ravizikrillah"
     static let githubRepo = "yt-music-glass"
@@ -30,6 +34,64 @@ enum AppIdentity {
 
     static var currentBuild: String {
         (Bundle.main.infoDictionary?["CFBundleVersion"] as? String) ?? "1"
+    }
+
+    /// Resolves the Application Support directory and migrates data from the legacy `YTMKaraoke` folder once if present.
+    static func appSupportDirectory(
+        in baseURL: URL? = nil,
+        fileManager: FileManager = .default
+    ) -> URL {
+        let base = baseURL
+            ?? fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.temporaryDirectory
+        let newDir = base.appendingPathComponent(appSupportFolderName, isDirectory: true)
+        let legacyDir = base.appendingPathComponent(legacyAppSupportFolderName, isDirectory: true)
+
+        if fileManager.fileExists(atPath: legacyDir.path) {
+            if !fileManager.fileExists(atPath: newDir.path) {
+                if (try? fileManager.moveItem(at: legacyDir, to: newDir)) == nil {
+                    try? fileManager.createDirectory(at: newDir, withIntermediateDirectories: true)
+                }
+            }
+            if fileManager.fileExists(atPath: legacyDir.path),
+               let items = try? fileManager.contentsOfDirectory(at: legacyDir, includingPropertiesForKeys: nil)
+            {
+                try? fileManager.createDirectory(at: newDir, withIntermediateDirectories: true)
+                for src in items {
+                    let dst = newDir.appendingPathComponent(src.lastPathComponent)
+                    if !fileManager.fileExists(atPath: dst.path) {
+                        try? fileManager.copyItem(at: src, to: dst)
+                    }
+                }
+            }
+        }
+
+        try? fileManager.createDirectory(at: newDir, withIntermediateDirectories: true)
+        return newDir
+    }
+
+    /// Preserves saved preferences and window frames when moving from the legacy bundle identifier.
+    static func migrateLegacyUserDefaultsIfNeeded(
+        target defaults: UserDefaults = .standard,
+        legacySuiteName: String = legacyBundleIdentifier
+    ) {
+        let migrationKey = "app_migrated_from_legacy_bundle_v1"
+        guard !defaults.bool(forKey: migrationKey) else { return }
+        guard Bundle.main.bundleIdentifier != legacySuiteName else { return }
+
+        if let legacyDomain = defaults.persistentDomain(forName: legacySuiteName), !legacyDomain.isEmpty {
+            let legacyWindowKey = "NSWindow Frame YTMKaraokeMainWindow"
+            let newWindowKey = "NSWindow Frame YTMusicGlassMainWindow"
+            for (key, value) in legacyDomain {
+                let isAppKey = key.hasPrefix("app_") || key.hasPrefix("hud_") || key == "mini_player_frame"
+                guard key == legacyWindowKey || isAppKey else { continue }
+                let targetKey = (key == legacyWindowKey) ? newWindowKey : key
+                if defaults.object(forKey: targetKey) == nil {
+                    defaults.set(value, forKey: targetKey)
+                }
+            }
+        }
+        defaults.set(true, forKey: migrationKey)
     }
 }
 

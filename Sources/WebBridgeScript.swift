@@ -3,8 +3,8 @@ import Foundation
 enum WebBridgeScript {
     static let source = #"""
 (function () {
-  if (window.__ytmKaraokeBridgeInstalled) return;
-  window.__ytmKaraokeBridgeInstalled = true;
+  if (window.__ytmgBridgeInstalled) return;
+  window.__ytmgBridgeInstalled = true;
 
   const isYtm = location.hostname.startsWith('music.');
   let lastTrackIdentity = '';
@@ -163,7 +163,7 @@ enum WebBridgeScript {
   }
 
   function postSnapshot(force) {
-    if (!window.webkit || !window.webkit.messageHandlers || !window.webkit.messageHandlers.karaokeBridge) {
+    if (!window.webkit || !window.webkit.messageHandlers || !window.webkit.messageHandlers.ytmgBridge) {
       return;
     }
 
@@ -190,7 +190,7 @@ enum WebBridgeScript {
     if (!force && sig === lastSignature) return;
     lastSignature = sig;
 
-    window.webkit.messageHandlers.karaokeBridge.postMessage({
+    window.webkit.messageHandlers.ytmgBridge.postMessage({
       platform: isYtm ? 'ytm' : 'youtube',
       track,
       nativeLyrics,
@@ -348,7 +348,7 @@ enum WebBridgeScript {
 
   function sendOfflineTracks(tracks, reason, forceResend) {
     if (!tracks || !tracks.length) return;
-    if (!window.webkit || !window.webkit.messageHandlers || !window.webkit.messageHandlers.karaokeBridge) return;
+    if (!window.webkit || !window.webkit.messageHandlers || !window.webkit.messageHandlers.ytmgBridge) return;
 
     const fresh = [];
     for (const t of tracks) {
@@ -367,7 +367,7 @@ enum WebBridgeScript {
     }
     if (!fresh.length) return;
 
-    window.webkit.messageHandlers.karaokeBridge.postMessage({
+    window.webkit.messageHandlers.ytmgBridge.postMessage({
       action: 'offlineTracksDiscovered',
       reason,
       tracks: fresh,
@@ -418,7 +418,7 @@ enum WebBridgeScript {
     }, 650);
   }
 
-  window.__ytmKaraokeScanOfflinePage = function () {
+  window.__ytmgScanOfflinePage = function () {
     scanOfflineTracks(true, 'manual_page_sync', true);
   };
 
@@ -448,7 +448,7 @@ enum WebBridgeScript {
     }, true);
   }
 
-  window.__ytmKaraokeCmd = function (action, value) {
+  window.__ytmgCmd = function (action, value) {
     const video = getVideo();
     if (action === 'seek') {
       if (video && Number.isFinite(value)) {
@@ -518,35 +518,35 @@ enum WebBridgeScript {
 
   let sidebarActiveState = false;
 
-  window.__ytmKaraokeSetSidebarActive = function (active) {
+  window.__ytmgSetSidebarActive = function (active) {
     sidebarActiveState = Boolean(active);
-    const btn = document.getElementById('ytm-karaoke-native-trigger-btn');
+    const btn = document.getElementById('ytmg-native-trigger-btn');
     if (btn) btn.dataset.active = String(sidebarActiveState);
   };
 
   function installPlayerTriggerButton() {
-    const STYLE_ID = 'ytm-karaoke-native-trigger-style';
-    const BTN_ID = 'ytm-karaoke-native-trigger-btn';
+    const STYLE_ID = 'ytmg-native-trigger-style';
+    const BTN_ID = 'ytmg-native-trigger-btn';
 
     if (!document.getElementById(STYLE_ID) && document.head) {
       const style = document.createElement('style');
       style.id = STYLE_ID;
       style.textContent = `
-        #${BTN_ID}.ytmk-ytm-btn {
+        #${BTN_ID}.ytmg-ytm-btn {
           appearance: none; border: 0; background: transparent;
           color: rgba(255,255,255,0.8); width: 40px; height: 40px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           cursor: pointer; margin: 0 2px; padding: 0;
           transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
         }
-        #${BTN_ID}.ytmk-ytm-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-        #${BTN_ID}.ytmk-ytm-btn:active { transform: scale(0.92); }
-        #${BTN_ID}.ytmk-ytm-btn[data-active="true"] { color: rgb(var(--ytmk-accent-rgb, 244, 63, 108)); background: rgba(var(--ytmk-accent-rgb, 244, 63, 108), 0.22); }
-        #${BTN_ID}.ytmk-yt-btn {
+        #${BTN_ID}.ytmg-ytm-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        #${BTN_ID}.ytmg-ytm-btn:active { transform: scale(0.92); }
+        #${BTN_ID}.ytmg-ytm-btn[data-active="true"] { color: rgb(var(--ytmg-accent-rgb, 244, 63, 108)); background: rgba(var(--ytmg-accent-rgb, 244, 63, 108), 0.22); }
+        #${BTN_ID}.ytmg-yt-btn {
           display: inline-flex; align-items: center; justify-content: center;
           vertical-align: top; color: rgba(255,255,255,0.9);
         }
-        #${BTN_ID}.ytmk-yt-btn[data-active="true"] { color: rgb(var(--ytmk-accent-rgb, 244, 63, 108)); }
+        #${BTN_ID}.ytmg-yt-btn[data-active="true"] { color: rgb(var(--ytmg-accent-rgb, 244, 63, 108)); }
       `;
       document.head.appendChild(style);
     }
@@ -561,7 +561,7 @@ enum WebBridgeScript {
       btn = document.createElement('button');
       btn.id = BTN_ID;
       btn.type = 'button';
-      btn.className = isYtm ? 'ytmk-ytm-btn' : 'ytp-button ytmk-yt-btn';
+      btn.className = isYtm ? 'ytmg-ytm-btn' : 'ytp-button ytmg-yt-btn';
       btn.title = 'Toggle Lyrics Sidebar (Shift+L)';
       btn.setAttribute('aria-label', 'Toggle Lyrics Sidebar');
       btn.dataset.active = String(sidebarActiveState);
@@ -590,8 +590,8 @@ enum WebBridgeScript {
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.karaokeBridge) {
-          window.webkit.messageHandlers.karaokeBridge.postMessage({ action: 'toggleSidebar' });
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ytmgBridge) {
+          window.webkit.messageHandlers.ytmgBridge.postMessage({ action: 'toggleSidebar' });
         }
       });
       container.prepend(btn);
@@ -609,8 +609,8 @@ enum WebBridgeScript {
       if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA' || node.isContentEditable) return;
     }
     e.preventDefault();
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.karaokeBridge) {
-      window.webkit.messageHandlers.karaokeBridge.postMessage({ action: 'toggleSidebar' });
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ytmgBridge) {
+      window.webkit.messageHandlers.ytmgBridge.postMessage({ action: 'toggleSidebar' });
     }
   }, true);
 
@@ -653,34 +653,34 @@ enum WebBridgeScript {
     const playerBar = document.querySelector('ytmusic-player-bar');
     if (!playerBar) return;
 
-    let bar = document.getElementById('ytmk-progress-bar');
+    let bar = document.getElementById('ytmg-progress-bar');
     if (!bar) {
       bar = document.createElement('div');
-      bar.id = 'ytmk-progress-bar';
+      bar.id = 'ytmg-progress-bar';
 
       const curEl = document.createElement('span');
-      curEl.className = 'ytmk-pb-time ytmk-pb-cur';
+      curEl.className = 'ytmg-pb-time ytmg-pb-cur';
       curEl.textContent = '0:00';
 
       const hit = document.createElement('div');
-      hit.className = 'ytmk-pb-hit';
+      hit.className = 'ytmg-pb-hit';
       hit.setAttribute('role', 'slider');
       hit.setAttribute('aria-label', 'Seek song progress');
 
       const track = document.createElement('div');
-      track.className = 'ytmk-pb-track';
+      track.className = 'ytmg-pb-track';
       const buf = document.createElement('div');
-      buf.className = 'ytmk-pb-buf';
+      buf.className = 'ytmg-pb-buf';
       const fill = document.createElement('div');
-      fill.className = 'ytmk-pb-fill';
+      fill.className = 'ytmg-pb-fill';
       track.appendChild(buf);
       track.appendChild(fill);
 
       const knob = document.createElement('div');
-      knob.className = 'ytmk-pb-knob';
+      knob.className = 'ytmg-pb-knob';
 
       const tip = document.createElement('div');
-      tip.className = 'ytmk-pb-tooltip';
+      tip.className = 'ytmg-pb-tooltip';
       tip.textContent = '0:00';
 
       hit.appendChild(track);
@@ -688,7 +688,7 @@ enum WebBridgeScript {
       hit.appendChild(tip);
 
       const durEl = document.createElement('span');
-      durEl.className = 'ytmk-pb-time ytmk-pb-dur';
+      durEl.className = 'ytmg-pb-time ytmg-pb-dur';
       durEl.textContent = '0:00';
 
       bar.appendChild(curEl);
@@ -769,14 +769,14 @@ enum WebBridgeScript {
 
   function updateCustomProgressBar() {
     if (!isYtm || isSeekingCustomBar) return;
-    const bar = document.getElementById('ytmk-progress-bar');
+    const bar = document.getElementById('ytmg-progress-bar');
     if (!bar) return;
     const v = getVideo();
-    const fill = bar.querySelector('.ytmk-pb-fill');
-    const knob = bar.querySelector('.ytmk-pb-knob');
-    const buf = bar.querySelector('.ytmk-pb-buf');
-    const curEl = bar.querySelector('.ytmk-pb-cur');
-    const durEl = bar.querySelector('.ytmk-pb-dur');
+    const fill = bar.querySelector('.ytmg-pb-fill');
+    const knob = bar.querySelector('.ytmg-pb-knob');
+    const buf = bar.querySelector('.ytmg-pb-buf');
+    const curEl = bar.querySelector('.ytmg-pb-cur');
+    const durEl = bar.querySelector('.ytmg-pb-dur');
     if (!fill || !knob) return;
 
     const dur = v && Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0;
@@ -807,7 +807,7 @@ enum WebBridgeScript {
     requestAnimationFrame(tickCustomProgressLoop);
   }
 
-  // Dynamic theme-colored Music logo synced with --ytmk-accent-rgb
+  // Dynamic theme-colored Music logo synced with --ytmg-accent-rgb
   function installDynamicLogo() {
     if (!isYtm) return;
     const navBar = document.querySelector('ytmusic-nav-bar');
@@ -816,11 +816,11 @@ enum WebBridgeScript {
     const anchor = (logoImg && logoImg.closest('a')) || navBar.querySelector('.left-content a.yt-simple-endpoint');
     if (!anchor) return;
 
-    anchor.classList.add('ytmk-has-dyn-logo');
-    if (anchor.querySelector('#ytmk-dynamic-logo')) return;
+    anchor.classList.add('ytmg-has-dyn-logo');
+    if (anchor.querySelector('#ytmg-dynamic-logo')) return;
 
     const wrap = document.createElement('span');
-    wrap.id = 'ytmk-dynamic-logo';
+    wrap.id = 'ytmg-dynamic-logo';
 
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
@@ -830,7 +830,7 @@ enum WebBridgeScript {
     svg.setAttribute('aria-hidden', 'true');
 
     const disc = document.createElementNS(ns, 'circle');
-    disc.setAttribute('class', 'ytmk-logo-disc');
+    disc.setAttribute('class', 'ytmg-logo-disc');
     disc.setAttribute('cx', '12');
     disc.setAttribute('cy', '12');
     disc.setAttribute('r', '11.5');
@@ -851,7 +851,7 @@ enum WebBridgeScript {
     svg.appendChild(tri);
 
     const text = document.createElement('span');
-    text.className = 'ytmk-logo-wordmark';
+    text.className = 'ytmg-logo-wordmark';
     text.textContent = 'Music';
 
     wrap.appendChild(svg);
@@ -872,8 +872,8 @@ enum WebBridgeScript {
       const label = (tab.textContent || '').trim();
       const shouldHide = /^(lyrics?|lirik|comments?|komentar)$/i.test(label);
       if (shouldHide) {
-        if (tab.dataset.ytmkHiddenTab !== 'true') {
-          tab.dataset.ytmkHiddenTab = 'true';
+        if (tab.dataset.ytmgHiddenTab !== 'true') {
+          tab.dataset.ytmgHiddenTab = 'true';
         }
         const isSelected =
           tab.hasAttribute('selected') ||
@@ -881,7 +881,7 @@ enum WebBridgeScript {
           tab.getAttribute('aria-selected') === 'true';
         if (isSelected) hiddenTabWasSelected = true;
       } else {
-        if (tab.dataset.ytmkHiddenTab) delete tab.dataset.ytmkHiddenTab;
+        if (tab.dataset.ytmgHiddenTab) delete tab.dataset.ytmgHiddenTab;
         if (!firstVisibleTab) firstVisibleTab = tab;
       }
     }
@@ -889,7 +889,7 @@ enum WebBridgeScript {
     if (
       hiddenTabWasSelected &&
       firstVisibleTab &&
-      document.documentElement.dataset.ytmkTheme === 'apple-glass'
+      document.documentElement.dataset.ytmgTheme === 'apple-glass'
     ) {
       firstVisibleTab.click();
     }

@@ -7,14 +7,12 @@ build:
 	@bash scripts/build.sh
 
 run: build
-	@pkill -x YTMKaraoke 2>/dev/null || true
 	@pkill -x YTMusicGlass 2>/dev/null || true
 	@open -n "dist-macos/YT Music Glass.app"
 
 install: build
-	@pkill -x YTMKaraoke 2>/dev/null || true
 	@pkill -x YTMusicGlass 2>/dev/null || true
-	@rm -rf "/Applications/YTM Karaoke.app" "/Applications/YT Music Glass.app"
+	@rm -rf "/Applications/YT Music Glass.app"
 	@cp -R "dist-macos/YT Music Glass.app" "/Applications/YT Music Glass.app"
 	@echo "Installed -> /Applications/YT Music Glass.app"
 	@open "/Applications/YT Music Glass.app"

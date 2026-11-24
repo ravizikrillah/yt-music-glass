@@ -623,7 +623,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         )
         userContent.addUserScript(themeScript)
 
-        // 2. Inject real-time karaoke playback & metadata bridge
+        // 2. Inject real-time playback & metadata bridge
         let bridgeScript = WKUserScript(
             source: WebBridgeScript.source,
             injectionTime: .atDocumentEnd,
@@ -657,14 +657,14 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         self.window.backgroundColor = NSColor(red: 0.012, green: 0.012, blue: 0.012, alpha: 1.0)
         self.window.minSize = NSSize(width: 780, height: 520)
         self.window.center()
-        self.window.setFrameAutosaveName("YTMKaraokeMainWindow")
+        self.window.setFrameAutosaveName("YTMusicGlassMainWindow")
 
         super.init()
 
         self.window.delegate = self
         self.webView.uiDelegate = self
         self.webView.navigationDelegate = self
-        userContent.add(self, name: "karaokeBridge")
+        userContent.add(self, name: "ytmgBridge")
 
         let container = NSView()
         container.wantsLayer = true
@@ -952,17 +952,17 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
     }
 
     private func syncInPageSidebarButton(_ visible: Bool) {
-        let js = "window.__ytmKaraokeSetSidebarActive && window.__ytmKaraokeSetSidebarActive(\(visible ? "true" : "false"));"
+        let js = "window.__ytmgSetSidebarActive && window.__ytmgSetSidebarActive(\(visible ? "true" : "false"));"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     private func pushThemeState(_ enabled: Bool) {
-        let js = "window.__ytmKaraokeSetTheme && window.__ytmKaraokeSetTheme(\(enabled ? "true" : "false"));"
+        let js = "window.__ytmgSetTheme && window.__ytmgSetTheme(\(enabled ? "true" : "false"));"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     private func pushFontStyle(_ style: AppFontStyle) {
-        let js = "window.__ytmKaraokeSetFontStyle && window.__ytmKaraokeSetFontStyle('\(style.rawValue)');"
+        let js = "window.__ytmgSetFontStyle && window.__ytmgSetFontStyle('\(style.rawValue)');"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
@@ -971,12 +971,12 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
             .replacingOccurrences(of: "\\", with: "")
             .replacingOccurrences(of: "'", with: "")
         let artArg = safeArt.isEmpty ? "null" : "'\(safeArt)'"
-        let js = "window.__ytmKaraokeSetPalette && window.__ytmKaraokeSetPalette('\(palette.accentRGBString)', '\(palette.bgTopHex)', '\(palette.bgBottomHex)', \(artArg));"
+        let js = "window.__ytmgSetPalette && window.__ytmgSetPalette('\(palette.accentRGBString)', '\(palette.bgTopHex)', '\(palette.bgBottomHex)', \(artArg));"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     private func scanOfflinePageInWeb() {
-        let js = "window.__ytmKaraokeScanOfflinePage && window.__ytmKaraokeScanOfflinePage();"
+        let js = "window.__ytmgScanOfflinePage && window.__ytmgScanOfflinePage();"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
@@ -996,7 +996,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
     private func sendPlayerCommand(action: String, value: Double?) {
         let arg = value.map { String($0) } ?? "null"
         let escapedAction = action.replacingOccurrences(of: "'", with: "")
-        let js = "window.__ytmKaraokeCmd && window.__ytmKaraokeCmd('\(escapedAction)', \(arg));"
+        let js = "window.__ytmgCmd && window.__ytmgCmd('\(escapedAction)', \(arg));"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
@@ -1013,7 +1013,7 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == "karaokeBridge", let body = message.body as? [String: Any] else {
+        guard message.name == "ytmgBridge", let body = message.body as? [String: Any] else {
             return
         }
         store.handleWebBridgeMessage(body)

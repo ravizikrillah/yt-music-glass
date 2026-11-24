@@ -232,6 +232,7 @@ final class AppStore: ObservableObject {
     private var timer: Timer? = nil
 
     init() {
+        AppIdentity.migrateLegacyUserDefaultsIfNeeded()
         let defaults = UserDefaults.standard
         let savedSite = defaults.string(forKey: "app_site_mode") ?? "ytm"
         self.siteMode = WebSiteMode(rawValue: savedSite) ?? .youtubeMusic

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TMP_BIN="/tmp/ytm_karaoke_swift_tests"
-TMP_TEST="/tmp/ytm_karaoke_swift_tests.swift"
+TMP_BIN="/tmp/yt_music_glass_swift_tests"
+TMP_TEST="/tmp/yt_music_glass_swift_tests.swift"
 
 cat > "${TMP_TEST}" <<'SWIFT'
 import Foundation
@@ -121,8 +121,8 @@ enum SwiftCoreTests {
 
         // 6. Offline Karaoke Vault: permanent pinning, clearCache preservation, 3-tier offline matching
         let tempDir = FileManager.default.temporaryDirectory
-        let tmpLyricsURL = tempDir.appendingPathComponent("ytmk_test_offline_lyrics_\(UUID().uuidString).json")
-        let tmpTransURL = tempDir.appendingPathComponent("ytmk_test_offline_trans_\(UUID().uuidString).json")
+        let tmpLyricsURL = tempDir.appendingPathComponent("ytmg_test_offline_lyrics_\(UUID().uuidString).json")
+        let tmpTransURL = tempDir.appendingPathComponent("ytmg_test_offline_trans_\(UUID().uuidString).json")
         defer {
             try? FileManager.default.removeItem(at: tmpLyricsURL)
             try? FileManager.default.removeItem(at: tmpTransURL)
@@ -208,6 +208,20 @@ enum SwiftCoreTests {
         assertEqual(SemVerComparator.isNewer("v1.0.10", than: "1.0.2"), true, "double digit patch is newer")
         assertEqual(SemVerComparator.isNewer("v1.0.0", than: "1.0.0"), false, "same version is not newer")
         assertEqual(SemVerComparator.isNewer("0.9.9", than: "1.0.0"), false, "older version is not newer")
+
+        // 8. Legacy Application Support auto-migration (YTMKaraoke -> YTMusicGlass)
+        let migBase = tempDir.appendingPathComponent("ytmg_mig_test_\(UUID().uuidString)", isDirectory: true)
+        let legacyDir = migBase.appendingPathComponent(AppIdentity.legacyAppSupportFolderName, isDirectory: true)
+        try! FileManager.default.createDirectory(at: legacyDir, withIntermediateDirectories: true)
+        let legacyFile = legacyDir.appendingPathComponent("lyrics-store.json")
+        try! Data("{\"overrides\":{},\"cache\":{}}".utf8).write(to: legacyFile)
+        defer {
+            try? FileManager.default.removeItem(at: migBase)
+        }
+        let resolvedDir = AppIdentity.appSupportDirectory(in: migBase)
+        assertEqual(resolvedDir.lastPathComponent, AppIdentity.appSupportFolderName, "app support uses YTMusicGlass folder")
+        assertTrue(FileManager.default.fileExists(atPath: resolvedDir.appendingPathComponent("lyrics-store.json").path), "legacy lyrics-store.json migrated")
+        assertTrue(!FileManager.default.fileExists(atPath: legacyDir.path), "legacy YTMKaraoke folder moved cleanly")
 
         print("ALL_SWIFT_CORE_TESTS_PASSED")
     }

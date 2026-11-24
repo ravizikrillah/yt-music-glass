@@ -112,7 +112,7 @@ Most desktop wrappers for YouTube Music ship a full Chromium + Node.js runtime v
 - **Smart Lyrics Translation (`⇧⌘E`):** Toolbar **From → To** language picker (`Auto`, `EN`, `ID`, `JA`, `KO`, `ZH`, etc.) with persistent disk cache and automatic language-mismatch filtering (hides redundant translations when a song or line is already in your target language).
 
 ### Offline Karaoke Vault
-- **Automatic Download Detection (`⇧⌘D` / `⇧⌘O`):** Detects YouTube Music **Downloads** (`/downloads`), downloaded albums/playlists, and Download clicks to pre-fetch and permanently pin synced lyrics + active translations to `~/Library/Application Support/YTMKaraoke/`.
+- **Automatic Download Detection (`⇧⌘D` / `⇧⌘O`):** Detects YouTube Music **Downloads** (`/downloads`), downloaded albums/playlists, and Download clicks to pre-fetch and permanently pin synced lyrics + active translations to `~/Library/Application Support/YTMusicGlass/`.
 - **3-Tier Offline Matching:** Resolves tracks offline via `trackKey` → `videoId` → normalized `artist + title`, paired with 100% offline Auto-Romanization.
 
 ### Native macOS Integrations

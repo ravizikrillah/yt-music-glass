@@ -104,9 +104,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         editItem.submenu = editMenu
         mainMenu.addItem(editItem)
 
-        // View / Karaoke Menu
+        // View / Lyrics Menu
         let viewItem = NSMenuItem()
-        let viewMenu = NSMenu(title: "Karaoke")
+        let viewMenu = NSMenu(title: "Lyrics")
 
         let cmdPaletteItem = NSMenuItem(title: "Quick Command Palette", action: #selector(toggleCommandPalette), keyEquivalent: "k")
         cmdPaletteItem.target = self
@@ -522,7 +522,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 }
 
 @main
-enum YtmKaraokeAppMain {
+enum YTMusicGlassAppMain {
     static func main() {
         let app = NSApplication.shared
         let delegate = AppDelegate()
