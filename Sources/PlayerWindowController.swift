@@ -805,6 +805,9 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
         store.onNavigateURL = { [weak self] url in
             self?.load(url: url)
         }
+        store.onFocusTapSync = { [weak self] in
+            self?.window.makeFirstResponder(nil)
+        }
 
         installFullScreenEventMonitor()
         load(url: store.siteMode.homeURL)
@@ -926,6 +929,38 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
     private func installFullScreenEventMonitor() {
         fullScreenEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .mouseMoved, .leftMouseDown, .scrollWheel]) { [weak self] event in
             guard let self else { return event }
+
+            // Handle Tap-to-Sync keyboard shortcuts while active in the main window
+            if self.store.isTapSyncActive,
+               event.type == .keyDown,
+               event.window == self.window,
+               !self.store.isCommandPaletteOpen,
+               !self.store.isPickerOpen
+            {
+                let modifiers = event.modifierFlags.intersection([.command, .control, .option])
+                let responderIsTextInput = self.window.firstResponder is NSText
+                if modifiers.isEmpty && !responderIsTextInput {
+                    switch event.keyCode {
+                    case 49: // Space -> Tap current line
+                        self.store.tapSyncNext()
+                        return nil
+                    case 51: // Delete / Backspace -> Undo last tap
+                        self.store.tapSyncUndo()
+                        return nil
+                    case 53: // Escape -> Cancel Tap-to-Sync
+                        self.store.cancelTapSync()
+                        return nil
+                    case 36: // Return -> Save when all lines have been tapped
+                        if self.store.tapSyncSession?.isComplete == true {
+                            self.store.saveTapSync()
+                            return nil
+                        }
+                    default:
+                        break
+                    }
+                }
+            }
+
             guard self.store.isFullScreenLyricsVisible else { return event }
 
             switch event.type {
@@ -935,10 +970,12 @@ final class PlayerWindowController: NSObject, NSWindowDelegate, WKScriptMessageH
                 }
                 return event
             case .keyDown:
-                // Escape key (keyCode 53) smoothly closes Picker first, then exits Full Screen Lyrics
+                // Escape key (keyCode 53) closes Picker -> Tap-to-Sync -> Full Screen Lyrics
                 if event.keyCode == 53 {
                     if self.store.isPickerOpen {
                         self.store.closePicker()
+                    } else if self.store.isTapSyncActive {
+                        self.store.cancelTapSync()
                     } else {
                         self.store.exitFullScreenLyrics()
                     }

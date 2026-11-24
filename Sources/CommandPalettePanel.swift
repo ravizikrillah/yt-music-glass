@@ -320,6 +320,46 @@ final class CommandPaletteController: NSObject, NSWindowDelegate {
                 perform: { [weak self] in self?.store.downloadOfflineLyricsForCurrentPage() }
             ),
             PaletteAction(
+                id: "tap-to-sync",
+                title: store.isTapSyncActive ? "Cancel Live Tap-to-Sync" : "Tap to Sync Current Lyrics",
+                subtitle: store.canStartTapSync
+                    ? "Tap Space per line to create synced LRC karaoke"
+                    : "Available when lyrics are loaded",
+                icon: "hand.tap.fill",
+                shortcut: nil,
+                keywords: "tap sync timing lrc unsynced karaoke manual editor",
+                perform: { [weak self] in
+                    guard let self else { return }
+                    if self.store.isTapSyncActive {
+                        self.store.cancelTapSync()
+                    } else if self.store.canStartTapSync {
+                        self.onShowMainWindow()
+                        if !self.store.isFullScreenLyricsVisible && !self.store.isSidebarVisible {
+                            self.store.isSidebarVisible = true
+                        }
+                        self.store.startTapSync()
+                    }
+                }
+            ),
+            PaletteAction(
+                id: "toggle-dock-art",
+                title: store.dockAlbumArtEnabled ? "Reset Dock Icon to Default" : "Show Album Art on Dock Icon",
+                subtitle: "Render current song artwork as macOS squircle Dock icon",
+                icon: "photo.on.rectangle.angled",
+                shortcut: nil,
+                keywords: "dock icon album artwork cover macos badge",
+                perform: { [weak self] in self?.store.dockAlbumArtEnabled.toggle() }
+            ),
+            PaletteAction(
+                id: "toggle-now-playing-banner",
+                title: store.nowPlayingNotificationsEnabled ? "Turn Off Now Playing Banners" : "Turn On Now Playing Banners",
+                subtitle: "Silent macOS banner with artwork when track changes in background",
+                icon: "bell.badge",
+                shortcut: nil,
+                keywords: "notification banner now playing macos alert background",
+                perform: { [weak self] in self?.store.nowPlayingNotificationsEnabled.toggle() }
+            ),
+            PaletteAction(
                 id: "font-switch",
                 title: store.fontStyle == .roboto ? "Switch Font to SF Pro (macOS Native)" : "Switch Font to Roboto (YouTube Music)",
                 subtitle: "Current font: \(store.fontStyle.displayLabel)",

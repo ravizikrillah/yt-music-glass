@@ -3,6 +3,7 @@ import Foundation
 struct TrackOverrideRecord: Codable {
     var offsetMs: Double
     var selectedCandidate: LrclibCandidate?
+    var source: LyricsSource?
     var updatedAt: Double
 }
 
@@ -81,15 +82,18 @@ final class LyricsService {
 
     func saveSelectedCandidate(_ candidate: LrclibCandidate, for track: CleanedTrack, pinOffline: Bool = false) {
         let trackKey = track.trackKey
-        var existing = data.overrides[trackKey] ?? TrackOverrideRecord(offsetMs: 0, selectedCandidate: nil, updatedAt: 0)
+        let hasSynced = !(candidate.syncedLyrics?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let resolvedSource: LyricsSource = hasSynced ? .lrclibSynced : .lrclibPlain
+
+        var existing = data.overrides[trackKey] ?? TrackOverrideRecord(offsetMs: 0, selectedCandidate: nil, source: nil, updatedAt: 0)
         existing.selectedCandidate = candidate
+        existing.source = resolvedSource
         existing.updatedAt = Date().timeIntervalSince1970
         data.overrides[trackKey] = existing
 
         let wasPinned = (data.cache[trackKey]?.pinnedOffline == true) || pinOffline
-        let hasSynced = !(candidate.syncedLyrics?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         data.cache[trackKey] = makeCacheRecord(
-            source: hasSynced ? .lrclibSynced : .lrclibPlain,
+            source: resolvedSource,
             rawSyncedLyrics: candidate.syncedLyrics,
             rawPlainLyrics: candidate.plainLyrics,
             candidateId: candidate.id,
@@ -102,15 +106,18 @@ final class LyricsService {
     }
 
     func saveSelectedCandidate(_ candidate: LrclibCandidate, for trackKey: String) {
-        var existing = data.overrides[trackKey] ?? TrackOverrideRecord(offsetMs: 0, selectedCandidate: nil, updatedAt: 0)
+        let hasSynced = !(candidate.syncedLyrics?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let resolvedSource: LyricsSource = hasSynced ? .lrclibSynced : .lrclibPlain
+
+        var existing = data.overrides[trackKey] ?? TrackOverrideRecord(offsetMs: 0, selectedCandidate: nil, source: nil, updatedAt: 0)
         existing.selectedCandidate = candidate
+        existing.source = resolvedSource
         existing.updatedAt = Date().timeIntervalSince1970
         data.overrides[trackKey] = existing
 
         let wasPinned = data.cache[trackKey]?.pinnedOffline == true
-        let hasSynced = !(candidate.syncedLyrics?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         data.cache[trackKey] = CachedLyricsRecord(
-            source: hasSynced ? .lrclibSynced : .lrclibPlain,
+            source: resolvedSource,
             rawSyncedLyrics: candidate.syncedLyrics,
             rawPlainLyrics: candidate.plainLyrics,
             candidateId: candidate.id,
@@ -126,6 +133,69 @@ final class LyricsService {
         pruneOverridesIfNeeded()
         pruneCacheIfNeeded()
         persist()
+    }
+
+    /// Saves user-created Tap-to-Sync LRC as an override and pins it into the Offline Karaoke Vault.
+    @discardableResult
+    func saveUserSyncedLyrics(
+        lrcText: String,
+        plainLyrics: String?,
+        for track: CleanedTrack,
+        candidates: [LrclibCandidate] = [],
+        pinOffline: Bool = true
+    ) -> ResolvedLyrics? {
+        let trimmedLrc = lrcText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedLrc.isEmpty else { return nil }
+
+        let parsed = LrcParser.parseLrc(trimmedLrc, trackDuration: Double(track.duration))
+        guard parsed.mode == "synced", !parsed.lines.isEmpty else { return nil }
+
+        let customId = Self.stableCustomCandidateId(for: track.trackKey)
+        let fallbackPlain = plainLyrics ?? parsed.plainLines.joined(separator: "\n")
+        let candidate = LrclibCandidate(
+            id: customId,
+            trackName: track.title,
+            artistName: track.artist,
+            albumName: track.album,
+            duration: Double(track.duration),
+            plainLyrics: fallbackPlain,
+            syncedLyrics: trimmedLrc
+        )
+
+        var existing = data.overrides[track.trackKey] ?? TrackOverrideRecord(offsetMs: 0, selectedCandidate: nil, source: nil, updatedAt: 0)
+        existing.selectedCandidate = candidate
+        existing.source = .userSynced
+        existing.updatedAt = Date().timeIntervalSince1970
+        data.overrides[track.trackKey] = existing
+
+        let wasPinned = (data.cache[track.trackKey]?.pinnedOffline == true) || pinOffline
+        data.cache[track.trackKey] = makeCacheRecord(
+            source: .userSynced,
+            rawSyncedLyrics: trimmedLrc,
+            rawPlainLyrics: fallbackPlain,
+            candidateId: customId,
+            track: track,
+            pinnedOffline: wasPinned
+        )
+        pruneOverridesIfNeeded()
+        pruneCacheIfNeeded()
+        persist()
+
+        return ResolvedLyrics(
+            source: .userSynced,
+            parsed: parsed,
+            candidateId: customId,
+            candidates: candidates
+        )
+    }
+
+    private static func stableCustomCandidateId(for trackKey: String) -> Int {
+        var hash: UInt64 = 14695981039346656037
+        for byte in trackKey.utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 1099511628211
+        }
+        return -Int((hash % 1_000_000_000) + 1)
     }
 
     /// Clears temporary streaming cache while preserving permanently pinned offline karaoke lyrics.
@@ -241,9 +311,9 @@ final class LyricsService {
 
     private func buildResolved(from cached: CachedLyricsRecord, duration: Int) -> ResolvedLyrics? {
         let effectiveDur = duration > 0 ? duration : (cached.duration ?? 0)
-        if cached.source == .lrclibSynced, let rawSynced = cached.rawSyncedLyrics {
+        if cached.source.isSynced, let rawSynced = cached.rawSyncedLyrics {
             return ResolvedLyrics(
-                source: .lrclibSynced,
+                source: cached.source,
                 parsed: LrcParser.parseLrc(rawSynced, trackDuration: Double(effectiveDur)),
                 candidateId: cached.candidateId,
                 candidates: []
@@ -274,7 +344,7 @@ final class LyricsService {
                 if rec.pinnedOffline == true {
                     return (k, rec)
                 }
-                if bestIdMatch == nil || rec.source == .lrclibSynced {
+                if bestIdMatch == nil || rec.source.isSynced {
                     bestIdMatch = (k, rec)
                 }
             }
@@ -312,7 +382,7 @@ final class LyricsService {
             }
 
             if rec.pinnedOffline == true { matchScore += 20 }
-            if rec.source == .lrclibSynced { matchScore += 10 }
+            if rec.source.isSynced { matchScore += 10 }
 
             if bestMetaMatch == nil || matchScore > bestMetaMatch!.score {
                 bestMetaMatch = (k, rec, matchScore)
@@ -344,11 +414,22 @@ final class LyricsService {
         pinOffline: Bool = false
     ) async throws -> ResolvedLyrics? {
         if !bypassCache {
-            if let selected = data.overrides[track.trackKey]?.selectedCandidate,
+            if let override = data.overrides[track.trackKey],
+               let selected = override.selectedCandidate,
                let resolved = buildResolved(from: selected, duration: track.duration, candidates: [selected])
             {
+                let isCustom = (override.source == .userSynced) || selected.id < 0
+                let effectiveSource: LyricsSource = isCustom && resolved.parsed.mode == "synced" ? .userSynced : resolved.source
                 if pinOffline {
                     _ = pinExistingForOffline(track: track)
+                }
+                if effectiveSource != resolved.source {
+                    return ResolvedLyrics(
+                        source: effectiveSource,
+                        parsed: resolved.parsed,
+                        candidateId: resolved.candidateId,
+                        candidates: resolved.candidates
+                    )
                 }
                 return resolved
             }

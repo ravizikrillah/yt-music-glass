@@ -112,6 +112,11 @@ enum LyricsSource: String, Codable {
     case lrclibSynced = "lrclib_synced"
     case lrclibPlain = "lrclib_plain"
     case ytmNative = "ytm_native"
+    case userSynced = "user_synced"
+
+    var isSynced: Bool {
+        self == .lrclibSynced || self == .userSynced
+    }
 }
 
 struct ResolvedLyrics {

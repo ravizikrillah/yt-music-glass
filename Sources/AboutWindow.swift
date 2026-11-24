@@ -70,7 +70,7 @@ struct AboutContentView: View {
             VStack(spacing: 16) {
                 // App Icon + Identity Hero
                 VStack(spacing: 10) {
-                    Image(nsImage: NSApp.applicationIconImage)
+                    Image(nsImage: store.dockIconController.baseIcon)
                         .resizable()
                         .interpolation(.high)
                         .aspectRatio(contentMode: .fit)

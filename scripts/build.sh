@@ -81,17 +81,20 @@ swiftc \
   -framework MediaPlayer \
   -framework NaturalLanguage \
   -framework ServiceManagement \
+  -framework UserNotifications \
   "${ROOT_DIR}/Sources/Models.swift" \
   "${ROOT_DIR}/Sources/ArtworkPalette.swift" \
   "${ROOT_DIR}/Sources/AudioVisualizerView.swift" \
   "${ROOT_DIR}/Sources/ThemeStyles.swift" \
   "${ROOT_DIR}/Sources/MetadataNormalizer.swift" \
   "${ROOT_DIR}/Sources/LrcParser.swift" \
+  "${ROOT_DIR}/Sources/TapSyncEngine.swift" \
   "${ROOT_DIR}/Sources/Romanizer.swift" \
   "${ROOT_DIR}/Sources/TranslationService.swift" \
   "${ROOT_DIR}/Sources/LyricsService.swift" \
   "${ROOT_DIR}/Sources/UpdateService.swift" \
   "${ROOT_DIR}/Sources/NowPlayingBridge.swift" \
+  "${ROOT_DIR}/Sources/NativeDesktopExperience.swift" \
   "${ROOT_DIR}/Sources/WebBridgeScript.swift" \
   "${ROOT_DIR}/Sources/AppStore.swift" \
   "${ROOT_DIR}/Sources/FloatingHudPanel.swift" \
@@ -99,6 +102,7 @@ swiftc \
   "${ROOT_DIR}/Sources/SettingsWindow.swift" \
   "${ROOT_DIR}/Sources/AboutWindow.swift" \
   "${ROOT_DIR}/Sources/CommandPalettePanel.swift" \
+  "${ROOT_DIR}/Sources/TapSyncPanelView.swift" \
   "${ROOT_DIR}/Sources/HudContentView.swift" \
   "${ROOT_DIR}/Sources/SidebarLyricsView.swift" \
   "${ROOT_DIR}/Sources/FullScreenLyricsView.swift" \

@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppFont.registerBundledFonts()
         NSApp.setActivationPolicy(.regular)
+        store.dockIconController.captureBaseIconIfNeeded()
         setupMainMenu()
 
         let hud = HudWindowController(store: store)
@@ -50,6 +51,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             onOpenAbout: { [weak self] in self?.openAbout() }
         )
         self.playerController = player
+
+        store.isMainWindowVisibleAndActive = { [weak player] in
+            guard let win = player?.window else { return false }
+            return NSApp.isActive && win.isVisible && !win.isMiniaturized
+        }
+        store.onShowMainWindowFromNotification = { [weak self] in
+            self?.showPlayer()
+        }
+        store.configureDesktopExperience()
 
         player.show()
         if store.isHudVisible {

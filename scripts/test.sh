@@ -223,6 +223,64 @@ enum SwiftCoreTests {
         assertTrue(FileManager.default.fileExists(atPath: resolvedDir.appendingPathComponent("lyrics-store.json").path), "legacy lyrics-store.json migrated")
         assertTrue(!FileManager.default.fileExists(atPath: legacyDir.path), "legacy YTMKaraoke folder moved cleanly")
 
+        // 9. Live Tap-to-Sync Engine & Custom Synced LRC Persistence
+        assertEqual(TapSyncSession.formatLrcTimestamp(59.999), "[01:00.00]", "centisecond rounding rolls over cleanly")
+        assertEqual(TapSyncSession.formatLrcTimestamp(65.432), "[01:05.43]", "standard mm:ss.cc formatting")
+
+        var tapSession = TapSyncSession(trackKey: downloadedTrack.trackKey, plainLines: [
+            "First sung line",
+            "   ",
+            "Second sung line",
+            "Third sung line",
+        ])
+        assertEqual(tapSession.totalCount, 3, "filters blank spacer lines")
+        assertEqual(tapSession.tappedCount, 0, "starts with zero taps")
+
+        tapSession.tapNext(at: 12.50)
+        tapSession.tapNext(at: 12.40) // earlier/fast tap should clamp monotonically above prev + 0.05
+        assertEqual(tapSession.tappedCount, 2, "two lines tapped")
+        assertTrue((tapSession.lines[1].timestamp ?? 0) >= 12.549, "monotonic timestamp clamping")
+
+        tapSession.undoLastTap()
+        assertEqual(tapSession.currentIndex, 1, "undo rewinds currentIndex")
+        assertEqual(tapSession.lines[1].timestamp, nil, "undo clears timestamp")
+
+        tapSession.tapNext(at: 16.25)
+        tapSession.tapNext(at: 21.80)
+        assertTrue(tapSession.isComplete, "session reaches completion")
+
+        let exportedLrc = tapSession.exportLrc() ?? ""
+        let reparsedTap = LrcParser.parseLrc(exportedLrc, trackDuration: 180)
+        assertEqual(reparsedTap.mode, "synced", "exported tap-sync parses back as synced LRC")
+        assertEqual(reparsedTap.lines.count, 3, "all three lines preserved")
+        assertEqual(reparsedTap.lines[1].text, "Second sung line", "second line text matches")
+
+        let tapTrack = MetadataNormalizer.normalize(TrackInfo(
+            id: "tapVid999",
+            title: "Acoustic Demo",
+            artist: "Indie Artist",
+            album: nil,
+            duration: 180,
+            artworkUrl: nil
+        ))
+        let tmpTapURL = tempDir.appendingPathComponent("ytmg_test_tapsync_\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tmpTapURL) }
+        let tapStore = LyricsService(storeURL: tmpTapURL)
+        let savedResolved = tapStore.saveUserSyncedLyrics(
+            lrcText: exportedLrc,
+            plainLyrics: tapSession.exportPlainText(),
+            for: tapTrack
+        )
+        assertTrue(savedResolved != nil, "saveUserSyncedLyrics succeeds")
+        assertEqual(savedResolved?.source, .userSynced, "saved source is userSynced")
+        assertEqual(tapStore.offlineCount(), 1, "tap-synced lyrics auto-pinned to offline vault")
+        tapStore.clearCache()
+        assertEqual(tapStore.offlineCount(), 1, "clearCache preserves user-synced offline vault")
+
+        let reloadedTapStore = LyricsService(storeURL: tmpTapURL)
+        let hitRecord = reloadedTapStore.findCachedRecord(for: tapTrack)
+        assertEqual(hitRecord?.record.source, .userSynced, "userSynced persists across reload")
+
         print("ALL_SWIFT_CORE_TESTS_PASSED")
     }
 }
@@ -235,6 +293,7 @@ swiftc \
   "${ROOT_DIR}/Sources/Models.swift" \
   "${ROOT_DIR}/Sources/MetadataNormalizer.swift" \
   "${ROOT_DIR}/Sources/LrcParser.swift" \
+  "${ROOT_DIR}/Sources/TapSyncEngine.swift" \
   "${ROOT_DIR}/Sources/LyricsService.swift" \
   "${ROOT_DIR}/Sources/UpdateService.swift" \
   "${ROOT_DIR}/Sources/Romanizer.swift" \

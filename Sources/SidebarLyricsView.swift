@@ -8,6 +8,15 @@ struct SidebarLyricsView: View {
         Group {
             if store.isPickerOpen {
                 pickerContent
+            } else if store.isTapSyncActive {
+                VStack(spacing: 0) {
+                    sidebarHeader
+                    Rectangle()
+                        .fill(Color.white.opacity(0.07))
+                        .frame(height: 1)
+                    TapSyncPanelView(store: store, compactLayout: true)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             } else {
                 ZStack(alignment: .bottom) {
                     VStack(spacing: 0) {
@@ -365,14 +374,40 @@ struct SidebarLyricsView: View {
     private func plainList(lines: [String]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 11) {
-                Text(store.lyricsSource == .ytmNative ? "YOUTUBE MUSIC · UNSYNCED" : "LRCLIB · UNSYNCED")
-                    .font(.system(size: 10, weight: .bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.white.opacity(0.1))
-                    .foregroundStyle(.white.opacity(0.68))
-                    .clipShape(Capsule())
-                    .padding(.bottom, 6)
+                HStack(spacing: 8) {
+                    Text(store.lyricsSource == .ytmNative ? "YOUTUBE MUSIC · UNSYNCED" : "LRCLIB · UNSYNCED")
+                        .font(.system(size: 10, weight: .bold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.white.opacity(0.1))
+                        .foregroundStyle(.white.opacity(0.68))
+                        .clipShape(Capsule())
+
+                    if store.canStartTapSync {
+                        Button {
+                            store.startTapSync()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "hand.tap.fill")
+                                    .font(.system(size: 9.5, weight: .semibold))
+                                    .foregroundStyle(store.palette.accentColor)
+                                Text("Tap to Sync")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white.opacity(0.95))
+                            }
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 3.5)
+                            .background(store.palette.accentColor.opacity(0.20))
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule().strokeBorder(store.palette.accentColor.opacity(0.45), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .help("Tap Space line-by-line to convert these lyrics into synced karaoke")
+                    }
+                }
+                .padding(.bottom, 6)
 
                 ForEach(Array(lines.enumerated()), id: \.offset) { idx, line in
                     if line.isEmpty {
@@ -553,6 +588,8 @@ struct SidebarLyricsView: View {
         switch store.lyricsSource {
         case .lrclibSynced:
             return store.resolvedLyrics?.parsed.hasWordSync == true ? "Word Sync" : "Synced"
+        case .userSynced:
+            return "Tap Sync"
         case .lrclibPlain:
             return "LRCLIB"
         case .ytmNative:

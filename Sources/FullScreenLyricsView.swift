@@ -13,6 +13,9 @@ struct FullScreenLyricsView: View {
                 if store.isPickerOpen {
                     centeredPickerModal
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                } else if store.isTapSyncActive {
+                    TapSyncPanelView(store: store, compactLayout: false)
+                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
                 } else {
                     lyricsCenterStage
                         .transition(.opacity)
@@ -28,7 +31,7 @@ struct FullScreenLyricsView: View {
 
                     Spacer(minLength: 0)
 
-                    if !store.isPickerOpen {
+                    if !store.isPickerOpen && !store.isTapSyncActive {
                         bottomFloatingControlDock
                             .padding(.horizontal, 28)
                             .padding(.bottom, 26)
@@ -62,7 +65,7 @@ struct FullScreenLyricsView: View {
     }
 
     private var effectiveControlsVisible: Bool {
-        store.fullScreenControlsVisible || store.isHoveringFullScreenControls || store.isPickerOpen || store.playback.paused
+        store.fullScreenControlsVisible || store.isHoveringFullScreenControls || store.isPickerOpen || store.isTapSyncActive || store.playback.paused
     }
 
     // MARK: - Dynamic Album Art Mesh & Blurred Glow Background
@@ -537,14 +540,41 @@ struct FullScreenLyricsView: View {
     private func plainCenteredList(lines: [String]) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .center, spacing: 18) {
-                Text(store.lyricsSource == .ytmNative ? "YOUTUBE MUSIC · UNSYNCED LYRICS" : "LRCLIB · UNSYNCED LYRICS")
-                    .font(.system(size: 10.5, weight: .bold))
-                    .padding(.horizontal, 11)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.10))
-                    .foregroundStyle(.white.opacity(0.72))
-                    .clipShape(Capsule())
-                    .padding(.bottom, 8)
+                HStack(spacing: 10) {
+                    Text(store.lyricsSource == .ytmNative ? "YOUTUBE MUSIC · UNSYNCED LYRICS" : "LRCLIB · UNSYNCED LYRICS")
+                        .font(.system(size: 10.5, weight: .bold))
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 4)
+                        .background(Color.white.opacity(0.10))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .clipShape(Capsule())
+
+                    if store.canStartTapSync {
+                        Button {
+                            store.notifyFullScreenUserActivity()
+                            store.startTapSync()
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "hand.tap.fill")
+                                    .font(.system(size: 10.5, weight: .semibold))
+                                    .foregroundStyle(store.palette.accentColor)
+                                Text("Tap to Sync")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(.white.opacity(0.95))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(store.palette.accentColor.opacity(0.22))
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule().strokeBorder(store.palette.accentColor.opacity(0.48), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .help("Tap Space line-by-line to convert these lyrics into synced karaoke")
+                    }
+                }
+                .padding(.bottom, 8)
 
                 ForEach(Array(lines.enumerated()), id: \.offset) { idx, line in
                     if line.isEmpty {

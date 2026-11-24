@@ -116,6 +116,42 @@ final class AppStore: ObservableObject {
 
     @Published var updateState: UpdateState = .idle
 
+    // Native Desktop Experience: Dock Album Art & Now Playing Banners
+    @Published var dockAlbumArtEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(dockAlbumArtEnabled, forKey: "app_dock_album_art")
+            syncDockIcon(allowStaleArtworkFallback: true)
+        }
+    }
+
+    @Published var nowPlayingNotificationsEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(nowPlayingNotificationsEnabled, forKey: "app_now_playing_notifications")
+            if nowPlayingNotificationsEnabled {
+                nowPlayingBannerService.requestPermissionAndRefreshStatus()
+                scheduleBannerIfNeeded()
+            } else {
+                nowPlayingBannerService.cancelPending(clearLastTrack: true)
+            }
+        }
+    }
+
+    @Published var notificationStatusHint: String = "Silent macOS banner with artwork when track changes in background"
+
+    // Live Tap-to-Sync state for unsynced plain lyrics
+    @Published var tapSyncSession: TapSyncSession? = nil
+    @Published var tapSyncElapsedTime: Double = 0
+
+    var isTapSyncActive: Bool {
+        tapSyncSession != nil
+    }
+
+    var canStartTapSync: Bool {
+        guard currentCleaned != nil, status == .plainFallback || status == .synced else { return false }
+        guard let plainLines = resolvedLyrics?.parsed.plainLines else { return false }
+        return plainLines.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
     @Published var status: SessionStatus = .idle
     @Published var track: TrackInfo? = nil
     @Published var playback: PlaybackSnapshot = .idle
@@ -210,15 +246,21 @@ final class AppStore: ObservableObject {
     var onPaletteChanged: ((AlbumPalette) -> Void)?
     var onScanOfflinePage: (() -> Void)?
     var onNavigateURL: ((URL) -> Void)?
+    var onFocusTapSync: (() -> Void)?
+    var isMainWindowVisibleAndActive: (() -> Bool)?
+    var onShowMainWindowFromNotification: (() -> Void)?
 
     let lyricsService = LyricsService()
     let translationService = TranslationService()
     let updateService = UpdateService()
     let nowPlayingBridge = NowPlayingBridge()
+    let dockIconController = DockIconController()
+    let nowPlayingBannerService = NowPlayingBannerService()
     private let paletteExtractor = ArtworkPaletteExtractor()
     private var updateTask: Task<Void, Never>? = nil
 
     private var currentCleaned: CleanedTrack? = nil
+    private var currentArtworkTrackKey: String? = nil
     private var lastNativeFallback: String? = nil
     private var isCurrentTrackInOfflineContext: Bool = false
     private var fetchTask: Task<Void, Never>? = nil
@@ -305,6 +347,9 @@ final class AppStore: ObservableObject {
             self.autoCheckUpdatesEnabled = true
         }
 
+        self.dockAlbumArtEnabled = defaults.bool(forKey: "app_dock_album_art")
+        self.nowPlayingNotificationsEnabled = defaults.bool(forKey: "app_now_playing_notifications")
+
         self.offlineSavedCount = self.lyricsService.offlineCount()
         refreshLaunchAtLoginStatus()
 
@@ -323,6 +368,35 @@ final class AppStore: ObservableObject {
             onPrev: { [weak self] in self?.prevTrack() },
             onSeek: { [weak self] sec in self?.seekToRawTime(sec) }
         )
+
+        nowPlayingBannerService.shouldSuppressBannerInForeground = { [weak self] in
+            self?.isMainWindowVisibleAndActive?() ?? false
+        }
+        nowPlayingBannerService.onOpenApp = { [weak self] in
+            self?.onShowMainWindowFromNotification?()
+        }
+        nowPlayingBannerService.onNextTrack = { [weak self] in
+            self?.nextTrack()
+        }
+        nowPlayingBannerService.onTogglePlay = { [weak self] in
+            self?.togglePlay()
+        }
+        nowPlayingBannerService.onAuthorizationStatusChanged = { [weak self] msg in
+            self?.notificationStatusHint = msg
+        }
+    }
+
+    func configureDesktopExperience() {
+        dockIconController.captureBaseIconIfNeeded()
+        if nowPlayingNotificationsEnabled {
+            nowPlayingBannerService.configureIfSupported()
+            nowPlayingBannerService.refreshAuthorizationStatus()
+        }
+        syncDockIcon(allowStaleArtworkFallback: true)
+    }
+
+    func refreshNotificationStatus() {
+        nowPlayingBannerService.refreshAuthorizationStatus()
     }
 
     func toggleSidebar() {
@@ -602,10 +676,13 @@ final class AppStore: ObservableObject {
         if newPlayback.isAdPlaying {
             if status != .adPlaying {
                 cancelPendingFetch()
+                tapSyncSession = nil
                 status = .adPlaying
                 resolvedLyrics = nil
                 frame = .empty
             }
+            nowPlayingBannerService.cancelPending(clearLastTrack: false)
+            syncDockIcon(allowStaleArtworkFallback: false)
             recomputeFrame()
             updateTimerState()
             return
@@ -637,6 +714,7 @@ final class AppStore: ObservableObject {
             if offlineContext && !isCurrentTrackOfflineSaved && resolvedLyrics != nil {
                 saveCurrentTrackOffline()
             }
+            scheduleBannerIfNeeded()
             recomputeFrame()
             updateTimerState()
         } else {
@@ -771,8 +849,17 @@ final class AppStore: ObservableObject {
                 guard let self, self.loadGeneration == generation else { return }
                 self.palette = result.palette
                 self.artworkImage = result.image
+                self.currentArtworkTrackKey = seed
                 self.onPaletteChanged?(result.palette)
                 self.syncNowPlaying()
+                self.syncDockIcon(allowStaleArtworkFallback: false)
+                if self.nowPlayingNotificationsEnabled && !self.playback.paused && !self.playback.isAdPlaying {
+                    self.nowPlayingBannerService.notifyArtworkArrived(
+                        trackKey: seed,
+                        track: self.track,
+                        artwork: result.image
+                    )
+                }
             }
         }
     }
@@ -785,7 +872,9 @@ final class AppStore: ObservableObject {
     ) {
         guard let incoming, !incoming.title.trimmingCharacters(in: .whitespaces).isEmpty || !incoming.artist.trimmingCharacters(in: .whitespaces).isEmpty else {
             cancelPendingFetch()
+            tapSyncSession = nil
             currentCleaned = nil
+            currentArtworkTrackKey = nil
             track = nil
             artworkImage = nil
             palette = .defaultGlass
@@ -800,6 +889,8 @@ final class AppStore: ObservableObject {
             errorMessage = nil
             status = .idle
             frame = .empty
+            nowPlayingBannerService.cancelPending(clearLastTrack: true)
+            syncDockIcon(allowStaleArtworkFallback: false)
             updateTimerState()
             return
         }
@@ -810,6 +901,7 @@ final class AppStore: ObservableObject {
         }
 
         cancelPendingFetch()
+        tapSyncSession = nil
         let myGen = loadGeneration
 
         currentCleaned = cleaned
@@ -835,6 +927,7 @@ final class AppStore: ObservableObject {
         pickerCandidates = []
 
         refreshPalette(artworkUrl: incoming.artworkUrl, seed: cleaned.trackKey, generation: myGen)
+        scheduleBannerIfNeeded()
 
         let service = lyricsService
         let shouldPinOffline = isCurrentTrackInOfflineContext || isCurrentTrackOfflineSaved
@@ -994,6 +1087,7 @@ final class AppStore: ObservableObject {
             candidates: pickerCandidates
         ) else { return }
 
+        tapSyncSession = nil
         lyricsService.saveSelectedCandidate(candidate, for: cleaned, pinOffline: isCurrentTrackOfflineSaved)
         resolvedLyrics = resolved
         lyricsSource = resolved.source
@@ -1002,6 +1096,92 @@ final class AppStore: ObservableObject {
         offlineSavedCount = lyricsService.offlineCount()
         computeRomanizationAndTranslation()
         closePicker()
+        recomputeFrame()
+        updateTimerState()
+    }
+
+    // Live Tap-to-Sync Creation for Unsynced Plain Lyrics
+    func startTapSync(restartPlayback: Bool = false) {
+        guard let cleaned = currentCleaned,
+              let plainLines = resolvedLyrics?.parsed.plainLines
+        else { return }
+        let session = TapSyncSession(trackKey: cleaned.trackKey, plainLines: plainLines)
+        guard session.totalCount > 0 else { return }
+
+        if isPickerOpen {
+            closePicker()
+        }
+        tapSyncSession = session
+        let nowMs = Date().timeIntervalSince1970 * 1000.0
+        tapSyncElapsedTime = SyncCalculator.extrapolateTime(playback: playback, nowMs: nowMs)
+        onFocusTapSync?()
+
+        if restartPlayback {
+            seekToRawTime(0)
+            if playback.paused {
+                playOnly()
+            }
+            tapSyncElapsedTime = 0
+        } else if playback.paused {
+            playOnly()
+        }
+
+        updateTimerState()
+    }
+
+    func restartTapSyncFromBeginning() {
+        guard let cleaned = currentCleaned, let session = tapSyncSession else { return }
+        let plainLines = session.lines.map(\.text)
+        tapSyncSession = TapSyncSession(trackKey: cleaned.trackKey, plainLines: plainLines)
+        tapSyncElapsedTime = 0
+        seekToRawTime(0)
+        if playback.paused {
+            playOnly()
+        }
+        onFocusTapSync?()
+    }
+
+    func tapSyncNext() {
+        guard tapSyncSession != nil else { return }
+        let nowMs = Date().timeIntervalSince1970 * 1000.0
+        let t = SyncCalculator.extrapolateTime(playback: playback, nowMs: nowMs)
+        tapSyncElapsedTime = t
+        tapSyncSession?.tapNext(at: t)
+    }
+
+    func tapSyncUndo() {
+        tapSyncSession?.undoLastTap()
+    }
+
+    func tapSyncJump(to index: Int) {
+        tapSyncSession?.jumpToLine(index: index)
+    }
+
+    func cancelTapSync() {
+        tapSyncSession = nil
+        updateTimerState()
+    }
+
+    func saveTapSync() {
+        guard let cleaned = currentCleaned,
+              let session = tapSyncSession,
+              let lrcText = session.exportLrc(),
+              let saved = lyricsService.saveUserSyncedLyrics(
+                  lrcText: lrcText,
+                  plainLyrics: session.exportPlainText(),
+                  for: cleaned,
+                  candidates: pickerCandidates,
+                  pinOffline: true
+              )
+        else { return }
+
+        tapSyncSession = nil
+        resolvedLyrics = saved
+        lyricsSource = saved.source
+        status = .synced
+        isCurrentTrackOfflineSaved = lyricsService.hasOfflineLyrics(for: cleaned)
+        offlineSavedCount = lyricsService.offlineCount()
+        computeRomanizationAndTranslation()
         recomputeFrame()
         updateTimerState()
     }
@@ -1163,6 +1343,10 @@ final class AppStore: ObservableObject {
             playbackProgress = 0
         }
 
+        if isTapSyncActive {
+            tapSyncElapsedTime = t
+        }
+
         if status == .synced, let parsed = resolvedLyrics?.parsed {
             frame = SyncCalculator.computeFrame(parsed: parsed, currentTime: t, offsetMs: offsetMs)
         } else {
@@ -1178,6 +1362,31 @@ final class AppStore: ObservableObject {
 
     func syncNowPlaying() {
         nowPlayingBridge.update(track: track, playback: playback, artwork: artworkImage)
+    }
+
+    private func syncDockIcon(allowStaleArtworkFallback: Bool) {
+        guard dockAlbumArtEnabled, !playback.isAdPlaying, let track, let cleaned = currentCleaned else {
+            dockIconController.update(enabled: false, track: nil, artwork: nil, isAdPlaying: false)
+            return
+        }
+        if currentArtworkTrackKey == cleaned.trackKey {
+            dockIconController.update(enabled: true, track: track, artwork: artworkImage, isAdPlaying: false)
+        } else if allowStaleArtworkFallback {
+            dockIconController.update(enabled: true, track: track, artwork: artworkImage, isAdPlaying: false)
+        }
+    }
+
+    private func scheduleBannerIfNeeded() {
+        let key = currentCleaned?.trackKey
+        let matchingArt = (currentArtworkTrackKey == key) ? artworkImage : nil
+        nowPlayingBannerService.scheduleTrackBanner(
+            enabled: nowPlayingNotificationsEnabled,
+            trackKey: key,
+            track: track,
+            artwork: matchingArt,
+            isPaused: playback.paused,
+            isAdPlaying: playback.isAdPlaying
+        )
     }
 
     private func updateMenuBarLyricDisplay() {
@@ -1219,12 +1428,13 @@ final class AppStore: ObservableObject {
             isSidebarVisible ||
             isFullScreenLyricsVisible ||
             isMiniPlayerVisible ||
-            menuBarLyricsEnabled
+            menuBarLyricsEnabled ||
+            isTapSyncActive
 
         let shouldTick =
             needsLiveTick &&
             !playback.paused &&
-            (status == .synced || isMiniPlayerVisible || isFullScreenLyricsVisible || (audioVisualizerEnabled && (isSidebarVisible || isHudVisible)))
+            (status == .synced || isTapSyncActive || isMiniPlayerVisible || isFullScreenLyricsVisible || (audioVisualizerEnabled && (isSidebarVisible || isHudVisible)))
 
         syncNowPlaying()
 

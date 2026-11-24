@@ -36,6 +36,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     func show() {
         store.refreshLaunchAtLoginStatus()
+        store.refreshNotificationStatus()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -246,6 +247,33 @@ struct SettingsContentView: View {
                                     subtitle: "Compact floating widget with artwork, controls & 1-line lyrics",
                                     isOn: $store.isMiniPlayerVisible
                                 )
+
+                                dividerLine
+
+                                settingsToggleRow(
+                                    title: "Dock Album Artwork",
+                                    subtitle: "Show the current song cover on the macOS Dock icon",
+                                    isOn: $store.dockAlbumArtEnabled
+                                )
+
+                                dividerLine
+
+                                settingsToggleRow(
+                                    title: "Now Playing Track Banner",
+                                    subtitle: store.notificationStatusHint,
+                                    isOn: $store.nowPlayingNotificationsEnabled
+                                )
+
+                                if store.nowPlayingNotificationsEnabled && store.notificationStatusHint.lowercased().contains("disabled") {
+                                    HStack {
+                                        Spacer()
+                                        settingsActionButton("Open Notification Settings", icon: "bell.badge") {
+                                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+                                                NSWorkspace.shared.open(url)
+                                            }
+                                        }
+                                    }
+                                }
 
                                 dividerLine
 
