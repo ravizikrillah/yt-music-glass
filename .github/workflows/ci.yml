@@ -15,6 +15,8 @@ jobs:
           node-version: "22"
       - name: Verify shared web bridge & test vectors
         run: node packages/shared/scripts/verify-shared.mjs
+      - name: Verify changelog & release notes script
+        run: node .github/scripts/release-notes.mjs --verify
 
   macos-dual-arch:
     runs-on: macos-15
