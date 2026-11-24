@@ -1,6 +1,5 @@
 pub mod core;
 
-use crate::core::lrc::LrcParser;
 use crate::core::lyrics_service::LyricsService;
 use crate::core::models::{
     now_ms, CleanedTrack, LrclibCandidate, LyricsSource, ParsedLyrics, PlaybackSnapshot, SyncCalculator,
@@ -369,14 +368,11 @@ async fn ytmg_bridge_event(
                                 g.lyrics_service.has_offline_lyrics(&cleaned)
                             };
                             if !already {
-                                let mut tmp_svc = {
-                                    let g = state_arc.lock().await;
-                                    LyricsService::new(
-                                        dirs::data_local_dir()
-                                            .unwrap_or_else(std::env::temp_dir)
-                                            .join("YTMusicGlass"),
-                                    )
-                                };
+                                let mut tmp_svc = LyricsService::new(
+                                    dirs::data_local_dir()
+                                        .unwrap_or_else(std::env::temp_dir)
+                                        .join("YTMusicGlass"),
+                                );
                                 let fetched = tmp_svc.fetch_from_lrclib(&cleaned, true).await;
                                 if let Some(res) = fetched {
                                     let mut g = state_arc.lock().await;

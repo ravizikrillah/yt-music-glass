@@ -52,7 +52,7 @@ struct SemverVec {
 
 #[test]
 fn shared_test_vectors_parity() {
-    let raw = include_str!("../../../../packages/shared/test-vectors/core-vectors.json");
+    let raw = include_str!("../../../../../packages/shared/test-vectors/core-vectors.json");
     let vecs: SharedVectors = serde_json::from_str(raw).expect("valid shared vectors JSON");
 
     for case in vecs.metadata {

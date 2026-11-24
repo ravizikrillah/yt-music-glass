@@ -177,7 +177,8 @@ impl LyricsService {
     }
 
     pub async fn fetch_from_lrclib(&mut self, track: &CleanedTrack, pin_offline: bool) -> Option<ResolvedLyrics> {
-        let q = urlencoding::encode(&format!("{} {}", track.artist, track.title));
+        let raw_query = format!("{} {}", track.artist, track.title);
+        let q = urlencoding::encode(&raw_query);
         let url = format!("https://lrclib.net/api/search?q={q}");
         let resp = self.client.get(url).send().await.ok()?;
         if !resp.status().is_success() {

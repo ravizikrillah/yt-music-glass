@@ -169,9 +169,10 @@ impl LrcParser {
             };
             entries[i].end_time = next_start.max(entries[i].start_time + 0.25);
 
+            let entry_end = entries[i].end_time;
             if let Some(ref mut words) = entries[i].words {
                 if let Some(last) = words.last_mut() {
-                    last.end_time = entries[i].end_time.max(last.start_time + 0.12);
+                    last.end_time = entry_end.max(last.start_time + 0.12);
                 }
             }
         }
