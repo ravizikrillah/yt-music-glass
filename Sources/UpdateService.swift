@@ -113,6 +113,7 @@ enum UpdateState: Equatable {
     case upToDate(message: String)
     case available(GitHubReleaseInfo)
     case downloading(progress: Double, version: String)
+    case installing(version: String)
     case readyToInstall(fileURL: URL, version: String)
     case error(String)
 }
@@ -273,6 +274,198 @@ final class UpdateService {
         }
         onProgress(1.0)
         return destURL
+    }
+
+    static func resolveInstallDestinationURL(
+        currentBundleURL: URL = Bundle.main.bundleURL,
+        fileManager: FileManager = .default
+    ) -> URL {
+        let fallbackURL = URL(fileURLWithPath: "/Applications/\(AppIdentity.appName).app")
+        let path = currentBundleURL.path
+        guard currentBundleURL.pathExtension.lowercased() == "app" else {
+            return fallbackURL
+        }
+        if path.hasPrefix("/Volumes/") || path.contains("/AppTranslocation/") {
+            return fallbackURL
+        }
+        let parentDir = currentBundleURL.deletingLastPathComponent()
+        guard fileManager.isWritableFile(atPath: parentDir.path) else {
+            return fallbackURL
+        }
+        return currentBundleURL
+    }
+
+    /// Mounts the downloaded DMG silently, stages the new .app bundle, detaches the DMG,
+    /// and spawns a detached helper script that performs an atomic swap and relaunches the app.
+    func installDmgAndScheduleRelaunch(
+        from dmgURL: URL,
+        destinationAppURL: URL = UpdateService.resolveInstallDestinationURL()
+    ) async throws {
+        let stagingDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ytmg_update_\(UUID().uuidString)", isDirectory: true)
+        let mountPoint = stagingDir.appendingPathComponent("mount", isDirectory: true)
+        let stagedAppURL = stagingDir.appendingPathComponent("\(AppIdentity.appName).app", isDirectory: true)
+        let scriptURL = stagingDir.appendingPathComponent("apply_update.sh")
+
+        try FileManager.default.createDirectory(at: mountPoint, withIntermediateDirectories: true)
+
+        let destParent = destinationAppURL.deletingLastPathComponent()
+        guard FileManager.default.isWritableFile(atPath: destParent.path) else {
+            try? FileManager.default.removeItem(at: stagingDir)
+            throw NSError(domain: "UpdateService", code: 2, userInfo: [
+                NSLocalizedDescriptionKey: "Destination folder \(destParent.path) is not writable.",
+            ])
+        }
+
+        // 1. Mount DMG silently and copy .app bundle to local staging on a background queue
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                var mounted = false
+                defer {
+                    if mounted {
+                        _ = try? Self.runCommandSync(
+                            executable: "/usr/bin/hdiutil",
+                            arguments: ["detach", mountPoint.path, "-quiet", "-force"]
+                        )
+                    }
+                }
+
+                do {
+                    try Self.runCommandSync(
+                        executable: "/usr/bin/hdiutil",
+                        arguments: [
+                            "attach", dmgURL.path,
+                            "-nobrowse", "-readonly", "-noverify",
+                            "-mountpoint", mountPoint.path,
+                        ]
+                    )
+                    mounted = true
+
+                    let sourceAppURL = Self.locateAppBundle(in: mountPoint)
+                    guard let sourceAppURL else {
+                        throw NSError(domain: "UpdateService", code: 3, userInfo: [
+                            NSLocalizedDescriptionKey: "Could not locate \(AppIdentity.appName).app inside DMG.",
+                        ])
+                    }
+
+                    try Self.runCommandSync(
+                        executable: "/usr/bin/ditto",
+                        arguments: [sourceAppURL.path, stagedAppURL.path]
+                    )
+                    _ = try? Self.runCommandSync(
+                        executable: "/usr/bin/xattr",
+                        arguments: ["-cr", stagedAppURL.path]
+                    )
+
+                    continuation.resume(returning: ())
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+        // 2. Write atomic swap & relaunch helper script and launch it detached before app quits
+        let helperScript = """
+        #!/usr/bin/env bash
+        set -u
+        OLD_PID="$1"
+        STAGED_APP="$2"
+        DEST_APP="$3"
+        STAGING_DIR="$4"
+        DMG_PATH="$5"
+
+        for _ in $(seq 1 40); do
+          if ! kill -0 "$OLD_PID" 2>/dev/null; then
+            break
+          fi
+          sleep 0.2
+        done
+
+        DEST_PARENT="$(dirname "$DEST_APP")"
+        mkdir -p "$DEST_PARENT"
+        BACKUP_APP="${DEST_APP}.prev_backup_$$"
+
+        if [ -e "$DEST_APP" ]; then
+          if ! mv "$DEST_APP" "$BACKUP_APP"; then
+            rm -rf "$STAGING_DIR"
+            exit 1
+          fi
+        fi
+
+        if /usr/bin/ditto "$STAGED_APP" "$DEST_APP"; then
+          /usr/bin/xattr -cr "$DEST_APP" >/dev/null 2>&1 || true
+          rm -rf "$BACKUP_APP"
+          rm -f "$DMG_PATH" >/dev/null 2>&1 || true
+          /usr/bin/open -n "$DEST_APP"
+          rm -rf "$STAGING_DIR"
+        else
+          if [ -e "$BACKUP_APP" ]; then
+            rm -rf "$DEST_APP"
+            mv "$BACKUP_APP" "$DEST_APP" || true
+          fi
+          rm -rf "$STAGING_DIR"
+          exit 1
+        fi
+        """
+
+        try helperScript.write(to: scriptURL, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptURL.path)
+
+        let pid = String(ProcessInfo.processInfo.processIdentifier)
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/nohup")
+        proc.arguments = [
+            "/bin/bash",
+            scriptURL.path,
+            pid,
+            stagedAppURL.path,
+            destinationAppURL.path,
+            stagingDir.path,
+            dmgURL.path,
+        ]
+        proc.standardInput = FileHandle.nullDevice
+        proc.standardOutput = FileHandle.nullDevice
+        proc.standardError = FileHandle.nullDevice
+        try proc.run()
+    }
+
+    private static func locateAppBundle(in mountPoint: URL) -> URL? {
+        let exact = mountPoint.appendingPathComponent("\(AppIdentity.appName).app", isDirectory: true)
+        if FileManager.default.fileExists(atPath: exact.appendingPathComponent("Contents/Info.plist").path) {
+            return exact
+        }
+        guard let items = try? FileManager.default.contentsOfDirectory(
+            at: mountPoint,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else {
+            return nil
+        }
+        return items.first { url in
+            url.pathExtension.lowercased() == "app" &&
+                FileManager.default.fileExists(atPath: url.appendingPathComponent("Contents/Info.plist").path)
+        }
+    }
+
+    @discardableResult
+    private static func runCommandSync(executable: String, arguments: [String]) throws -> Int32 {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: executable)
+        proc.arguments = arguments
+        let errPipe = Pipe()
+        proc.standardOutput = FileHandle.nullDevice
+        proc.standardError = errPipe
+        try proc.run()
+        proc.waitUntilExit()
+
+        if proc.terminationStatus != 0 {
+            let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+            let errText = String(data: errData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw NSError(domain: "UpdateService", code: Int(proc.terminationStatus), userInfo: [
+                NSLocalizedDescriptionKey: errText.isEmpty ? "Command \(executable) failed (\(proc.terminationStatus))." : errText,
+            ])
+        }
+        return proc.terminationStatus
     }
 
     private func pickBestDmgAsset(from assets: [[String: Any]]) -> (name: String, url: URL, size: Int64)? {

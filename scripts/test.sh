@@ -281,6 +281,19 @@ enum SwiftCoreTests {
         let hitRecord = reloadedTapStore.findCachedRecord(for: tapTrack)
         assertEqual(hitRecord?.record.source, .userSynced, "userSynced persists across reload")
 
+        // 10. Auto-Updater destination resolution
+        let appsURL = URL(fileURLWithPath: "/Applications/YT Music Glass.app")
+        assertEqual(UpdateService.resolveInstallDestinationURL(currentBundleURL: appsURL).path, appsURL.path, "writable /Applications bundle updates in-place")
+
+        let mountedDmgApp = URL(fileURLWithPath: "/Volumes/YT Music Glass/YT Music Glass.app")
+        assertEqual(UpdateService.resolveInstallDestinationURL(currentBundleURL: mountedDmgApp).path, "/Applications/YT Music Glass.app", "mounted DMG bundle falls back to /Applications")
+
+        let translocatedApp = URL(fileURLWithPath: "/private/var/folders/xx/AppTranslocation/1234/d/YT Music Glass.app")
+        assertEqual(UpdateService.resolveInstallDestinationURL(currentBundleURL: translocatedApp).path, "/Applications/YT Music Glass.app", "AppTranslocation falls back to /Applications")
+
+        let rawBinaryURL = URL(fileURLWithPath: "/tmp/YTMusicGlass")
+        assertEqual(UpdateService.resolveInstallDestinationURL(currentBundleURL: rawBinaryURL).path, "/Applications/YT Music Glass.app", "non-.app binary falls back to /Applications")
+
         print("ALL_SWIFT_CORE_TESTS_PASSED")
     }
 }

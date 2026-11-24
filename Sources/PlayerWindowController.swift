@@ -372,6 +372,26 @@ struct PlayerToolbarView: View {
             .buttonStyle(.plain)
             .help("Downloading v\(version) DMG...")
 
+        case .installing(let version):
+            Button(action: onOpenAbout) {
+                HStack(spacing: 5) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.60)
+                        .tint(store.palette.accentColor)
+                    Text("Installing v\(version)...")
+                        .font(.system(size: 10.5, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(.white.opacity(0.92))
+                }
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(store.palette.accentColor.opacity(0.20))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(store.palette.accentColor.opacity(0.45), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .help("Installing v\(version) & relaunching...")
+
         case .readyToInstall(_, let version):
             Button(action: onOpenAbout) {
                 HStack(spacing: 5) {

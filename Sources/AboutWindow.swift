@@ -38,7 +38,7 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
             switch store.updateState {
             case .idle, .upToDate, .error:
                 store.checkForUpdates(userInitiated: true)
-            case .checking, .available, .downloading, .readyToInstall:
+            case .checking, .available, .downloading, .installing, .readyToInstall:
                 break
             }
         }
@@ -256,8 +256,8 @@ struct AboutContentView: View {
 
                 HStack(spacing: 8) {
                     if release.dmgDownloadURL != nil {
-                        linkPill("Download & Open DMG", icon: "arrow.down.circle.fill", accent: true) {
-                            store.downloadAndOpenUpdate()
+                        linkPill("Update & Relaunch", icon: "arrow.down.circle.fill", accent: true) {
+                            store.downloadAndInstallUpdate()
                         }
                     }
                     linkPill("Release Notes", icon: "arrow.up.right") {
@@ -288,13 +288,24 @@ struct AboutContentView: View {
                 .frame(height: 5)
             }
 
+        case .installing(let version):
+            HStack(spacing: 8) {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(store.palette.accentColor)
+                Text("Installing v\(version) & relaunching...")
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.88))
+                Spacer()
+            }
+
         case .readyToInstall(let fileURL, let version):
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("v\(version) downloaded!")
                         .font(AppFont.styled(12, weight: .bold, style: store.fontStyle))
                         .foregroundStyle(.white.opacity(0.95))
-                    Text("Drag YT Music Glass into Applications.")
+                    Text("Click Open DMG to install manually.")
                         .font(.system(size: 10.5))
                         .foregroundStyle(.white.opacity(0.56))
                 }

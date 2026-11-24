@@ -545,6 +545,7 @@ final class AppStore: ObservableObject {
 
     func checkForUpdates(userInitiated: Bool) {
         if case .downloading = updateState { return }
+        if case .installing = updateState { return }
         updateTask?.cancel()
         if userInitiated {
             updateState = .checking
@@ -568,7 +569,7 @@ final class AppStore: ObservableObject {
         }
     }
 
-    func downloadAndOpenUpdate() {
+    func downloadAndInstallUpdate() {
         guard case .available(let release) = updateState else { return }
         guard let dmgURL = release.dmgDownloadURL else {
             NSWorkspace.shared.open(release.htmlURL)
@@ -582,22 +583,37 @@ final class AppStore: ObservableObject {
 
         updateTask = Task { [weak self] in
             let weakStore = self
+            var downloadedFileURL: URL? = nil
             do {
                 let fileURL = try await service.downloadDmg(from: dmgURL, filename: filename) { progress in
                     Task { @MainActor in
                         weakStore?.updateState = .downloading(progress: progress, version: release.version)
                     }
                 }
+                downloadedFileURL = fileURL
                 guard !Task.isCancelled else { return }
+
                 await MainActor.run {
-                    guard let self else { return }
-                    self.updateState = .readyToInstall(fileURL: fileURL, version: release.version)
-                    NSWorkspace.shared.open(fileURL)
+                    self?.updateState = .installing(version: release.version)
+                }
+
+                try await service.installDmgAndScheduleRelaunch(from: fileURL)
+                try? await Task.sleep(nanoseconds: 120_000_000)
+
+                await MainActor.run {
+                    NSApp.terminate(nil)
                 }
             } catch {
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
-                    self?.updateState = .error("Download failed: \(error.localizedDescription)")
+                    guard let self else { return }
+                    if let fileURL = downloadedFileURL {
+                        // Fallback cleanly to manual DMG install if silent replacement fails (e.g., folder permissions)
+                        self.updateState = .readyToInstall(fileURL: fileURL, version: release.version)
+                        NSWorkspace.shared.open(fileURL)
+                    } else {
+                        self.updateState = .error("Download failed: \(error.localizedDescription)")
+                    }
                 }
             }
         }
